@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DATA SPORT - Big Games 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --color-primary: #1e40af;
+      --color-secondary: #059669;
+      --color-accent: #dc2626;
+      --color-background: #0f172a;
+      --color-card: #1e293b;
+      --color-text: #f1f5f9;
+      --gradient-header: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+    }
+    body { background: var(--color-background); color: var(--color-text); font-family: 'Segoe UI', system-ui, sans-serif; }
+    .card { background: var(--color-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .btn-primary { background: var(--color-primary); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .btn-secondary { background: var(--color-secondary); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn-secondary:hover { background: #047857; }
+    .btn-danger { background: var(--color-accent); color: white; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-ghost { background: transparent; color: var(--color-text); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.2s; }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+    .nav-tab { background: rgba(255,255,255,0.1); color: white; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+    .nav-tab:hover { background: rgba(255,255,255,0.2); }
+    .nav-tab.active { background: white; color: #1e40af; font-weight: 700; }
+    .badge-live { background: #dc2626; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; animation: pulse 1.5s infinite; }
+    .badge-scheduled { background: #2563eb; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .badge-finished { background: #16a34a; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+    .input-field { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 14px; border-radius: 8px; width: 100%; box-sizing: border-box; }
+    .input-field:focus { outline: none; border-color: #3b82f6; }
+    .input-field option { background: #1e293b; }
+    .table-row:hover { background: rgba(255,255,255,0.05); }
+    .spinner { border: 3px solid rgba(255,255,255,0.2); border-top: 3px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 40px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-box { background: #1e293b; border-radius: 16px; padding: 28px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; font-weight: 600; z-index: 9999; animation: slideIn 0.3s ease; }
+    .toast-success { background: #059669; color: white; }
+    .toast-error { background: #dc2626; color: white; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .score-display { font-size: 48px; font-weight: 900; color: white; text-align: center; }
+    .team-name-large { font-size: 18px; font-weight: 700; text-align: center; color: #93c5fd; }
+    .stat-number { font-size: 32px; font-weight: 900; color: #60a5fa; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="login-screen" class="min-h-screen flex items-center justify-center">
+  <div class="card text-center max-w-md w-full mx-4">
+    <div style="font-size:60px;margin-bottom:16px;">🏆</div>
+    <h1 class="text-3xl font-black mb-2" style="color:#60a5fa;">DATA SPORT</h1>
+    <p class="text-gray-400 mb-8">Big Games 2026 - Selecciona tu modo de acceso</p>
+    <div class="flex gap-4 justify-center">
+      <button onclick="App.login('viewer')" class="btn-ghost" style="font-size:16px;padding:14px 24px;">
+        📖 Modo Lector
+      </button>
+      <button onclick="App.login('editor')" class="btn-primary" style="font-size:16px;padding:14px 24px;">
+        ✏️ Modo Editor
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Main App (hidden until login) -->
+<div id="main-app" class="hidden min-h-screen flex flex-col">
+  <!-- Header -->
+  <header style="background: var(--gradient-header); padding: 20px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">
+    <div style="max-width:1400px;margin:0 auto;">
+      <div style="display:flex;align-items:center;gap:15px;margin-bottom:16px;">
+        <div style="background:white;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 10px rgba(0,0,0,0.2);">🏆</div>
+        <h1 style="color:white;font-size:32px;font-weight:900;margin:0;text-shadow:2px 2px 4px rgba(0,0,0,0.3);">DATA SPORT</h1>
+      </div>
+      <nav id="main-nav" style="display:flex;gap:8px;flex-wrap:wrap;"></nav>
+      <div style="position:absolute;top:20px;right:40px;">
+        <span id="user-badge" style="background:rgba(255,255,255,0.2);color:white;padding:8px 16px;border-radius:20px;font-size:14px;"></span>
+        <button onclick="App.logout()" class="btn-ghost" style="margin-left:8px;font-size:13px;padding:6px 12px;">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Container -->
+  <main id="page-content" style="flex:1;padding:40px;max-width:1400px;margin:0 auto;width:100%;box-sizing:border-box;"></main>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Modal container -->
+<div id="modal-container"></div>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/utils.js"></script>
+<script src="/static/js/pages/dashboard.js"></script>
+<script src="/static/js/pages/calendar.js"></script>
+<script src="/static/js/pages/live_scoring.js"></script>
+<script src="/static/js/pages/results.js"></script>
+<script src="/static/js/pages/statistics.js"></script>
+<script src="/static/js/pages/standings.js"></script>
+<script src="/static/js/pages/teams.js"></script>
+<script src="/static/js/pages/schools.js"></script>
+<script src="/static/js/pages/players.js"></script>
+<script src="/static/js/pages/register.js"></script>
+<script src="/static/js/pages/schedule.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

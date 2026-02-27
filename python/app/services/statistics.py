@@ -1,0 +1,180 @@
+"""
+Servicio de estadísticas: cálculo de stats de jugadores y equipos.
+"""
+from collections import defaultdict
+from app.utils.sport_config import PRIMARY_SCORING_SUPABASE_EVENTS, SUPABASE_EVENT_POINTS, SPORT_SCORE_TERM_MAP
+
+
+def calculate_player_stats(players: list, teams: list, matches: list, events: list) -> list:
+    """Calcula estadísticas completas de cada jugador."""
+    team_map = {t["id"]: t for t in teams}
+    player_map = {p["id"]: p for p in players}
+
+    # Índice: player_id -> match_ids en que participó
+    player_match_ids: dict[str, set] = defaultdict(set)
+    for event in events:
+        pid = event.get("player_id")
+        if pid:
+            player_match_ids[pid].add(event["match_id"])
+
+    # Estadísticas por jugador
+    stats_by_player: dict[str, dict] = {}
+
+    for event in events:
+        pid = event.get("player_id")
+        if not pid:
+            continue
+
+        player = player_map.get(pid)
+        if not player:
+            continue
+
+        team = team_map.get(player.get("team_id", ""), {})
+        school_name = team.get("school", {}).get("name", "Desconocido") if isinstance(team.get("school"), dict) else "Desconocido"
+        team_name = team.get("name", "Desconocido")
+
+        if pid not in stats_by_player:
+            stats_by_player[pid] = {
+                "player_id": pid,
+                "name": player.get("full_name", "Desconocido"),
+                "team_name": team_name,
+                "school": school_name,
+                "photo": player.get("photo_url") or f"https://ui-avatars.com/api/?background=1e40af&color=fff&size=60&name={player.get('full_name','?').replace(' ','+')}",
+                "yellow_cards": 0,
+                "red_cards": 0,
+                "total_cards": 0,
+                "matches_played": 0,
+                "sport_stats": {},
+            }
+
+        entry = stats_by_player[pid]
+        ev_type = event.get("event_type", "")
+
+        if ev_type == "yellow_card":
+            entry["yellow_cards"] += 1
+            entry["total_cards"] += 1
+        elif ev_type == "red_card":
+            entry["red_cards"] += 1
+            entry["total_cards"] += 1
+
+        # Sport stats
+        sport = event.get("sport", "")
+        if not sport:
+            # Buscar sport del partido
+            match = next((m for m in matches if m["id"] == event["match_id"]), None)
+            sport = match.get("sport", "") if match else ""
+
+        if sport not in entry["sport_stats"]:
+            entry["sport_stats"][sport] = {
+                "sport": sport,
+                "score": 0,
+                "assists": 0,
+                "score_term": SPORT_SCORE_TERM_MAP.get(sport, "Puntos"),
+                "assist_term": "Asistencias",
+                "three_pointers": 0,
+                "personal_fouls": 0,
+                "technical_fouls": 0,
+                "blocks": 0,
+                "aces_count": 0,
+                "errors": 0,
+            }
+
+        sport_stat = entry["sport_stats"][sport]
+        primary_events = PRIMARY_SCORING_SUPABASE_EVENTS.get(sport, [])
+
+        if ev_type in primary_events:
+            pts = SUPABASE_EVENT_POINTS.get(ev_type, 1)
+            sport_stat["score"] += pts
+
+        if ev_type in ("assist_football", "assist_basketball"):
+            sport_stat["assists"] += 1
+        if ev_type == "basket_3pts":
+            sport_stat["three_pointers"] += 1
+        if ev_type == "personal_foul":
+            sport_stat["personal_fouls"] += 1
+        if ev_type == "technical_foul":
+            sport_stat["technical_fouls"] += 1
+        if ev_type == "block":
+            sport_stat["blocks"] += 1
+        if ev_type == "ace":
+            sport_stat["aces_count"] += 1
+        if ev_type == "error_volleyball":
+            sport_stat["errors"] += 1
+
+    # Calcular matches_played
+    for pid, entry in stats_by_player.items():
+        entry["matches_played"] = len(player_match_ids.get(pid, set()))
+        entry["sport_stats"] = list(entry["sport_stats"].values())
+
+    return list(stats_by_player.values())
+
+
+def calculate_team_stats(teams: list, matches: list) -> list:
+    """Calcula la tabla de posiciones de equipos."""
+    stats: dict[str, dict] = {}
+
+    for team in teams:
+        tid = team["id"]
+        school_name = team.get("school", {}).get("name", "Desconocido") if isinstance(team.get("school"), dict) else "Desconocido"
+        category_name = team.get("category", {}).get("name", "") if isinstance(team.get("category"), dict) else ""
+        sport_name = team.get("sport", {}).get("name", "") if isinstance(team.get("sport"), dict) else ""
+        gender_name = team.get("category", {}).get("gender", "") if isinstance(team.get("category"), dict) else team.get("gender", "")
+
+        stats[tid] = {
+            "team_id": tid,
+            "team_name": team.get("name", "Desconocido"),
+            "school": school_name,
+            "sport": sport_name,
+            "category": category_name,
+            "gender": gender_name,
+            "matches_played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "points": 0,
+        }
+
+    for match in matches:
+        if match.get("status") != "finished":
+            continue
+
+        t1_id = match.get("team1_id")
+        t2_id = match.get("team2_id")
+        s1 = match.get("team1_score", 0)
+        s2 = match.get("team2_score", 0)
+
+        if t1_id in stats:
+            stats[t1_id]["matches_played"] += 1
+            stats[t1_id]["goals_for"] += s1
+            stats[t1_id]["goals_against"] += s2
+            if s1 > s2:
+                stats[t1_id]["wins"] += 1
+                stats[t1_id]["points"] += 3
+            elif s1 == s2:
+                stats[t1_id]["draws"] += 1
+                stats[t1_id]["points"] += 1
+            else:
+                stats[t1_id]["losses"] += 1
+
+        if t2_id in stats:
+            stats[t2_id]["matches_played"] += 1
+            stats[t2_id]["goals_for"] += s2
+            stats[t2_id]["goals_against"] += s1
+            if s2 > s1:
+                stats[t2_id]["wins"] += 1
+                stats[t2_id]["points"] += 3
+            elif s1 == s2:
+                stats[t2_id]["draws"] += 1
+                stats[t2_id]["points"] += 1
+            else:
+                stats[t2_id]["losses"] += 1
+
+    result = list(stats.values())
+    for s in result:
+        s["goal_difference"] = s["goals_for"] - s["goals_against"]
+
+    result.sort(key=lambda x: (-x["points"], -x["goal_difference"], -x["goals_for"]))
+    return result

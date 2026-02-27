@@ -1,0 +1,588 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Sport</title>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+      /* --- Custom CSS Variables for Data Sport Theme --- */
+      :root {
+        --color-primary: #1e40af; /* azul deportivo oscuro */
+        --color-secondary: #059669; /* verde deportivo */
+        --color-accent: #dc2626; /* rojo vibrante */
+        --color-warning: #f59e0b; /* naranja */
+        --color-background: #0f172a; /* azul oscuro casi negro */
+        --color-cards: #1e293b; /* gris azulado oscuro */
+        --color-text: #f1f5f9; /* blanco suave */
+        --color-text-secondary: #94a3b8; /* gris claro */
+
+        /* Gradientes */
+        --gradient-header: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+        --gradient-cards-hover: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        --gradient-buttons: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      }
+
+      /* --- Global Styles --- */
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        background-color: var(--color-background) !important;
+        color: var(--color-text) !important; /* Usar el nuevo color de texto */
+        letter-spacing: 0.025em; /* Mejor espaciado entre letras */
+        transition: all 0.3s ease; /* Animaciones suaves en general */
+      }
+
+      h1, h2, h3, h4, h5, h6 {
+          font-weight: 800; /* Títulos más bold */
+          color: var(--color-text) !important; /* Usar el nuevo color de texto */
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--color-cards); /* Fondo de scrollbar a juego */
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--color-secondary); /* Thumb con color deportivo */
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-secondary); /* Hover del thumb */
+      }
+
+      /* Smooth transitions for all interactive elements */
+      a, button, .cursor-pointer, input, select, textarea {
+        transition: all 0.3s ease;
+      }
+
+      /* --- Navbar Styles (New) --- */
+      button.nav-tab {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--color-text);
+          border: 2px solid transparent;
+          padding: 12px 24px;
+          border-radius: 10px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
+      }
+
+      button.nav-tab:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      }
+
+      button.nav-tab.active {
+          background: white;
+          color: var(--color-primary);
+          border-color: white;
+          box-shadow: 0 4px 20px rgba(255,255,255,0.3);
+      }
+
+      /* --- Button Styles (New) --- */
+      button {
+        font-weight: 600 !important;
+        transition: all 0.3s ease;
+      }
+
+      button.btn-primary {
+          background: var(--gradient-buttons);
+          color: white;
+          border: none;
+          padding: 15px 30px;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+      }
+
+      button.btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(5, 150, 105, 0.6);
+      }
+
+      button.btn-primary:active {
+          transform: translateY(0);
+      }
+
+      button.btn-secondary {
+          background: transparent;
+          color: var(--color-text);
+          border: 2px solid var(--color-secondary);
+          padding: 15px 30px;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+      }
+
+      button.btn-secondary:hover {
+          background: var(--color-secondary);
+          transform: translateY(-2px);
+      }
+
+      /* --- Cards/Surfaces --- */
+      /* --- Cards/Surfaces (New) --- */
+      .card {
+          background: var(--gradient-cards-hover);
+          border-radius: 16px;
+          padding: 20px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          border: 1px solid rgba(255,255,255,0.1);
+          transition: all 0.3s ease;
+      }
+
+      .card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 30px rgba(5, 150, 105, 0.4);
+          border-color: var(--color-secondary);
+      }
+
+      /* Dashboard Summary Section buttons (New) */
+      /* These will be handled by the .card class now */
+      .text-indigo-800, .text-indigo-700 { color: var(--color-primary) !important; }
+      .text-green-800, .text-green-700 { color: var(--color-secondary) !important; }
+      .text-purple-800, .text-purple-700 { color: var(--color-accent) !important; }
+
+      /* Dashboard Top Scorers rows */
+      .border-b.pb-2.last\:border-b-0 {
+          border-color: var(--color-border) !important;
+      }
+
+      /* --- Inputs and Forms (New) --- */
+      input, select {
+          background: rgba(255, 255, 255, 0.05);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          color: var(--color-text);
+          padding: 15px 20px;
+          border-radius: 12px;
+          font-size: 16px;
+          transition: all 0.3s ease;
+      }
+
+      input:focus, select:focus {
+          outline: none;
+          border-color: var(--color-secondary);
+          background: rgba(255, 255, 255, 0.08);
+          box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.2);
+      }
+
+      /* --- Match Status Colors (New) --- */
+      .status-scheduled {
+          background: linear-gradient(135deg, var(--color-primary), #3b82f6);
+          color: white;
+          padding: 6px 15px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+      }
+
+      .status-live {
+          background: linear-gradient(135deg, var(--color-accent), #ef4444);
+          animation: pulse 2s infinite;
+          color: white;
+          padding: 6px 15px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+      }
+
+      .status-finished {
+          background: linear-gradient(135deg, #475569, #64748b);
+          color: white;
+          padding: 6px 15px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+      }
+
+      /* --- Player Logo (New) --- */
+      .team-logo {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 4px solid var(--color-secondary);
+          box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+      }
+
+      /* --- Live Scoring Page Specifics (New) --- */
+      /* Live timer background */
+      .bg-gray-100.px-4.py-2.rounded-lg.shadow-inner {
+          background-color: var(--color-cards) !important;
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          box-shadow: inset 0 1px 3px rgba(0,0,0,0.08) !important; /* Soft inner shadow */
+          color: var(--color-text);
+      }
+
+      /* Sport Event Buttons */
+      .flex.flex-col.items-center.justify-center.p-3.sm\:p-4.bg-gray-100.rounded-lg.shadow-sm {
+          padding: 1rem 1.5rem !important; /* Make bigger */
+          border-radius: 0.75rem !important; /* More rounded */
+          background: var(--color-cards);
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+          color: var(--color-text);
+      }
+      .flex.flex-col.items-center.justify-center.p-3.sm\:p-4.bg-gray-100.rounded-lg.shadow-sm:hover {
+          background: var(--gradient-cards-hover);
+          box-shadow: 0 3px 10px rgba(0,0,0,0.12) !important;
+          transform: scale(1.02);
+      }
+      .flex.flex-col.items-center.justify-center.p-3.sm\:p-4.bg-gray-100.rounded-lg.shadow-sm span:first-child {
+          font-size: 2.5rem !important; /* Bigger icons */
+          line-height: 1;
+      }
+
+      /* Timeline event cards */
+      .relative.border-l-4.border-gray-200 > div > div.p-4.rounded-lg.shadow-md.bg-white,
+      .relative.border-l-4.border-gray-200 > div > div.p-3.rounded-lg.shadow-sm.bg-white { /* Both p-4 and p-3 event cards */
+          background: var(--color-cards);
+          border-color: rgba(255,255,255,0.1) !important;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+          color: var(--color-text);
+      }
+      .relative.border-l-4.border-gray-200 > div > div.p-4.rounded-lg.shadow-md.bg-white:hover,
+      .relative.border-l-4.border-gray-200 > div > div.p-3.rounded-lg.shadow-sm.bg-white:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(0,0,0,0.12) !important;
+          background: var(--gradient-cards-hover);
+      }
+
+      /* Event timeline circles */
+      .w-4.h-4.rounded-full.bg-indigo-500 {
+          background-color: var(--color-primary) !important;
+      }
+      .w-4.h-4.rounded-full.bg-green-500 {
+          background-color: var(--color-secondary) !important;
+      }
+
+      /* Notification messages (New) */
+      .bg-blue-100.border-blue-500.text-blue-700 {
+          background-color: var(--color-primary) !important;
+          border-color: var(--color-primary) !important;
+          color: white !important;
+          font-weight: 500;
+      }
+      .bg-yellow-100.text-yellow-700 {
+          background-color: var(--color-warning) !important;
+          border-color: var(--color-warning) !important;
+          color: white !important;
+          font-weight: 500;
+      }
+      .bg-green-100.text-green-700 {
+          background-color: var(--color-secondary) !important;
+          border-color: var(--color-secondary) !important;
+          color: white !important;
+          font-weight: 500;
+      }
+      .bg-red-100.text-red-700 {
+          background-color: var(--color-accent) !important;
+          border-color: var(--color-accent) !important;
+          color: white !important;
+          font-weight: 500;
+      }
+      .bg-gray-100.border-gray-400.text-gray-700 {
+        background-color: var(--color-cards) !important;
+        border-color: rgba(255,255,255,0.1) !important;
+        color: var(--color-text) !important;
+        font-weight: 500;
+      }
+
+
+      /* --- Statistics Tab Buttons (New) --- */
+      .flex.border-b.border-gray-200.mb-6 button { /* TabButton styles */
+          border-bottom: 2px solid transparent !important;
+          color: var(--color-text-secondary) !important;
+          padding-left: 1.5rem !important; /* px-6 */
+          padding-right: 1.5rem !important; /* px-6 */
+          font-size: 1.125rem !important; /* text-lg */
+          transition: all 0.3s ease;
+      }
+      .flex.border-b.border-gray-200.mb-6 button:hover {
+          color: var(--color-secondary) !important;
+          border-color: var(--color-secondary) !important;
+      }
+      .flex.border-b.border-gray-200.mb-6 button.text-indigo-600.border-b-4.border-indigo-600 { /* Active tab */
+          color: var(--color-secondary) !important;
+          border-color: var(--color-secondary) !important;
+          font-weight: 700 !important;
+      }
+
+      /* --- Table Styles (New) --- */
+      table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+          background: var(--color-cards);
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      }
+
+      thead {
+          background: linear-gradient(135deg, var(--color-primary), #3b82f6);
+      }
+
+      thead th {
+          color: white;
+          padding: 20px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          font-size: 14px;
+      }
+
+      tbody tr {
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          transition: all 0.3s ease;
+          color: var(--color-text); /* Ensure text is light on dark rows */
+      }
+
+      tbody tr:hover {
+          background: rgba(5, 150, 105, 0.1);
+          transform: scale(1.01);
+      }
+
+      tbody td {
+          padding: 18px 20px;
+          color: var(--color-text); /* Ensure text is light on dark tables */
+      }
+
+      /* Standings podium highlighting (New) */
+      .bg-yellow-50 {
+          background-color: rgba(255, 193, 7, 0.1) !important; /* Accent yellow with transparency */
+          border-left: 4px solid var(--color-accent) !important;
+      }
+
+      /* --- Player Search in Statistics (New) --- */
+      .player-search-container ul {
+          background: var(--color-cards);
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+      }
+      .player-search-container ul li:hover {
+          background: rgba(5, 150, 105, 0.1) !important;
+      }
+
+
+      /* --- Player and School Cards (General Hovers) (New) --- */
+      .bg-gray-50.p-3.rounded-md.shadow-sm { /* For teams list within schools detail */
+          background: var(--color-cards);
+          border: 1px solid rgba(255,255,255,0.1) !important;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+          color: var(--color-text);
+      }
+      .bg-gray-50.p-3.rounded-md.shadow-sm:hover {
+          background: var(--gradient-cards-hover);
+          transform: translateY(-1px) scale(1.01);
+          box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
+      }
+
+      /* Text colors (New) - Removed overrides to allow dark text on white backgrounds */
+      /* .text-gray-900 { color: var(--color-text) !important; } */
+      /* .text-gray-800 { color: var(--color-text) !important; } */
+      /* .text-gray-700 { color: var(--color-text) !important; } */
+      .text-gray-600 { color: var(--color-text-secondary) !important; }
+      .text-gray-500 { color: var(--color-text-secondary) !important; }
+      .text-gray-400 { color: var(--color-text-secondary) !important; }
+
+    /* --- Animations (New) --- */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    /* --- Player Logo (New) --- */
+    .team-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--color-secondary);
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    }
+
+    /* --- Animations (New) --- */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+    /* --- Responsive (New) --- */
+    @media (max-width: 768px) {
+        .nav-tabs {
+            flex-direction: column;
+        }
+        
+        .grid {
+            grid-template-columns: 1fr;
+        }
+        
+        h1 {
+            font-size: 24px !important;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .nav-tabs {
+            width: 100%;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        button.nav-tab {
+            flex-grow: 1;
+            text-align: center;
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+        .user-info {
+            margin-top: 10px;
+            width: 100%;
+            justify-content: flex-start;
+            padding: 10px;
+        }
+        .user-info span {
+            display: none;
+        }
+        .user-info img {
+            margin-right: 0;
+        }
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .card {
+            padding: 15px;
+        }
+        table thead th, table tbody td {
+            padding: 12px 15px;
+            font-size: 12px;
+        }
+    }
+    @media (max-width: 640px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .nav-tabs {
+            width: 100%;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        button.nav-tab {
+            flex-grow: 1;
+            text-align: center;
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+        .user-info {
+            margin-top: 10px;
+            width: 100%;
+            justify-content: flex-start;
+            padding: 10px;
+        }
+        .user-info span {
+            display: none;
+        }
+        .user-info img {
+            margin-right: 0;
+        }
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .card {
+            padding: 15px;
+        }
+        table thead th, table tbody td {
+            padding: 12px 15px;
+            font-size: 12px;
+        }
+    }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.95.3",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/package/xlsx.mjs"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+    <!-- 
+      IMPORTANTE:
+      Para que la aplicación funcione en el navegador sin un paso de construcción,
+      debes reemplazar 'YOUR_SUPABASE_ANON_KEY_HERE' con tu clave 'anon public' de Supabase.
+      Puedes encontrarla en el panel de control de tu proyecto Supabase,
+      en "Project Settings" -> "API Settings".
+      
+      Esta configuración es necesaria porque `process.env.API_KEY` no está disponible
+      nativamente en los módulos ES del navegador.
+    -->
+    <script type="module">
+      // Inicializar cliente Supabase global (usado por el componente React)
+      const SUPABASE_URL = 'https://ytrtbqtbzdnhedwcdxkj.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0cnRicXRiemRuaGVkd2NkeGtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3Njc3NzQsImV4cCI6MjA4NjM0Mzc3NH0.2pEp_9LFrNA4X1d4cRSUq1QKAoVVOLq5lalKvV41rJ8';
+      window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
+
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
