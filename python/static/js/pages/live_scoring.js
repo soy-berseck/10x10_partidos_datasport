@@ -5,42 +5,50 @@
 // Eventos disponibles por deporte
 const _LV_EVENTS = {
   'Fútbol': [
-    { type: 'gol',              label: '⚽ Gol',            scores: true  },
-    { type: 'tarjeta_amarilla', label: '🟨 T. Amarilla',    scores: false },
-    { type: 'tarjeta_roja',     label: '🟥 T. Roja',        scores: false },
+    { type: 'goal',        label: '⚽ Gol',           scores: true,  points: 1 },
+    { type: 'yellow_card', label: '🟨 T. Amarilla',   scores: false, points: 0 },
+    { type: 'red_card',    label: '🟥 T. Roja',       scores: false, points: 0 },
   ],
   'Fútbol 7': [
-    { type: 'gol',              label: '⚽ Gol',            scores: true  },
-    { type: 'tarjeta_amarilla', label: '🟨 T. Amarilla',    scores: false },
-    { type: 'tarjeta_roja',     label: '🟥 T. Roja',        scores: false },
+    { type: 'goal',        label: '⚽ Gol',           scores: true,  points: 1 },
+    { type: 'yellow_card', label: '🟨 T. Amarilla',   scores: false, points: 0 },
+    { type: 'red_card',    label: '🟥 T. Roja',       scores: false, points: 0 },
   ],
   'Baloncesto': [
-    { type: 'rebote',           label: '🏀 Rebote',         scores: false },
-    { type: 'bloqueo',          label: '🛡️ Bloqueo',        scores: false },
-    { type: 'falta_tecnica',    label: '🚫 Falta Técnica',  scores: false },
+    { type: 'rebote',      label: '🏀 Rebote',        scores: false, points: 0 },
+    { type: 'basket_2pts', label: '🏀 Canasta 2pts',  scores: true,  points: 2 },
+    { type: 'basket_3pts', label: '🏀 Canasta 3pts',  scores: true,  points: 3 },
+    { type: 'basket_1pt',  label: '🏀 Tiro Libre',    scores: true,  points: 1 },
   ],
   'Voleibol': [
-    { type: 'recepcion',        label: '🏐 Recepción',      scores: false },
+    { type: 'recepcion',   label: '🏐 Recepción',     scores: false, points: 0 },
   ],
 };
 
-// Etiquetas para historial (incluye tipos legacy)
+// Puntos que revierte al borrar un evento de score
+const _SCORE_POINTS = {
+  goal: 1, penalty: 1,
+  basket_1pt: 1, basket_2pts: 2, basket_3pts: 3,
+  point_volleyball: 1, ace: 1,
+};
+
+// Etiquetas para el historial de eventos
 const _LV_LABELS = {
-  gol:              '⚽ Gol',
-  tarjeta_amarilla: '🟨 Tarjeta Amarilla',
-  tarjeta_roja:     '🟥 Tarjeta Roja',
-  rebote:           '🏀 Rebote',
-  bloqueo:          '🛡️ Bloqueo',
-  falta_tecnica:    '🚫 Falta Técnica',
-  recepcion:        '🏐 Recepción',
-  // legacy
   goal:             '⚽ Gol',
   yellow_card:      '🟨 Tarjeta Amarilla',
   red_card:         '🟥 Tarjeta Roja',
-  personal_foul:    '❌ Falta Personal',
+  rebote:           '🏀 Rebote',
+  basket_1pt:       '🏀 Tiro Libre',
   basket_2pts:      '🏀 Canasta 2pts',
   basket_3pts:      '🏀 Canasta 3pts',
+  recepcion:        '🏐 Recepción',
   point_volleyball: '🏐 Punto',
+  ace:              '🎯 Ace',
+  block:            '🚫 Bloqueo',
+  personal_foul:    '❌ Falta Personal',
+  technical_foul:   '🚫 Falta Técnica',
+  penalty:          '⏸️ Penal',
+  assist_football:  '🎯 Asistencia',
 };
 
 Pages.LiveScoring = async function(container, opts) {
@@ -230,7 +238,7 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             ${sportEvts.map(ev => `
               <button class="btn-secondary"
-                onclick="window._lvStartEvent('${ev.type}','${ev.label}',${ev.scores})">
+                onclick="window._lvStartEvent('${ev.type}','${ev.label}',${ev.scores},${ev.points||0})">
                 ${ev.label}
               </button>
             `).join('')}
@@ -268,16 +276,11 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
         const sc1 = parseInt(document.getElementById('sc1')?.value ?? match.team1_score ?? 0);
         const sc2 = parseInt(document.getElementById('sc2')?.value ?? match.team2_score ?? 0);
 
-        // Paso 1: finalizar el partido (status). Siempre debe funcionar.
-        await Api.updateMatch(matchId, { status: 'finished' });
+        // Una sola llamada con status + scores para que el trigger vea los scores correctos
+        await Api.updateMatch(matchId, { status: 'finished', team1_score: sc1, team2_score: sc2 });
         match.status = 'finished';
-
-        // Paso 2: guardar scores por separado (falla si las columnas no existen aún en Supabase).
-        try {
-          await Api.updateMatch(matchId, { team1_score: sc1, team2_score: sc2 });
-          match.team1_score = sc1;
-          match.team2_score = sc2;
-        } catch(scoreErr) { /* columnas opcionales, ignorar */ }
+        match.team1_score = sc1;
+        match.team2_score = sc2;
 
         Utils.toast('Partido finalizado');
         render();
@@ -294,22 +297,22 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
         Utils.toast('Marcador guardado');
         render();
       } catch(e) {
-        Utils.toast('Para guardar marcador, agrega columnas team1_score/team2_score en Supabase', 'error');
+        Utils.toast(e.message || 'Error al guardar marcador', 'error');
       }
     };
 
     // Paso 1: seleccionar equipo
-    window._lvStartEvent = (evType, evLabel, updatesScore) => {
+    window._lvStartEvent = (evType, evLabel, updatesScore, points) => {
       Utils.showModal(`
         <h3 class="text-xl font-bold mb-4">${evLabel}</h3>
         <p class="text-gray-400 mb-4">Selecciona el equipo:</p>
         <div style="display:grid;gap:10px;">
           <button class="btn-primary"
-            onclick="window._lvPickPlayer('${evType}',${updatesScore},'${match.team1_id}')">
+            onclick="window._lvPickPlayer('${evType}',${updatesScore},${points},'${match.team1_id}')">
             ${s1}
           </button>
           <button class="btn-secondary"
-            onclick="window._lvPickPlayer('${evType}',${updatesScore},'${match.team2_id}')">
+            onclick="window._lvPickPlayer('${evType}',${updatesScore},${points},'${match.team2_id}')">
             ${s2}
           </button>
         </div>
@@ -317,7 +320,7 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
     };
 
     // Paso 2: seleccionar jugador
-    window._lvPickPlayer = (evType, updatesScore, teamId) => {
+    window._lvPickPlayer = (evType, updatesScore, points, teamId) => {
       const teamPlayers = allPlayers.filter(p => p.team_id === teamId);
       const teamName    = teamId === match.team1_id ? s1 : s2;
       const noPlayers   = teamPlayers.length === 0;
@@ -332,13 +335,13 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
         ` : `<p class="text-gray-400 text-sm mb-3">Selecciona el jugador:</p>`}
         <div style="display:grid;gap:8px;max-height:320px;overflow-y:auto;">
           <button class="btn-ghost"
-            onclick="window._lvSaveEvent('${evType}',${updatesScore},'${teamId}',null)">
+            onclick="window._lvSaveEvent('${evType}',${updatesScore},${points},'${teamId}',null)">
             Sin jugador específico
           </button>
           ${teamPlayers.map(p => `
             <button class="btn-ghost"
               style="text-align:left;display:flex;align-items:center;gap:10px;"
-              onclick="window._lvSaveEvent('${evType}',${updatesScore},'${teamId}','${p.id}')">
+              onclick="window._lvSaveEvent('${evType}',${updatesScore},${points},'${teamId}','${p.id}')">
               <span style="font-weight:700;color:#60a5fa;min-width:32px;">#${p.jersey_number ?? '?'}</span>
               <span>${p.full_name}</span>
             </button>
@@ -348,7 +351,7 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
     };
 
     // Paso 3: guardar evento
-    window._lvSaveEvent = async (evType, updatesScore, teamId, playerId) => {
+    window._lvSaveEvent = async (evType, updatesScore, points, teamId, playerId) => {
       try {
         await Api.createEvent({
           match_id:   matchId,
@@ -358,13 +361,15 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
           minute:     0,
         });
 
-        if (updatesScore) {
+        if (updatesScore && points > 0) {
           const isT1 = teamId === match.team1_id;
-          const sc1  = (match.team1_score ?? 0) + (isT1 ? 1 : 0);
-          const sc2  = (match.team2_score ?? 0) + (isT1 ? 0 : 1);
-          await Api.updateMatch(matchId, { team1_score: sc1, team2_score: sc2 });
-          match.team1_score = sc1;
-          match.team2_score = sc2;
+          const sc1  = (match.team1_score ?? 0) + (isT1 ? points : 0);
+          const sc2  = (match.team2_score ?? 0) + (isT1 ? 0 : points);
+          try {
+            await Api.updateMatch(matchId, { team1_score: sc1, team2_score: sc2 });
+            match.team1_score = sc1;
+            match.team2_score = sc2;
+          } catch(scoreErr) { /* score columns might not exist yet */ }
         }
 
         Utils.closeModal();
@@ -372,28 +377,31 @@ async function _lvDetail(container, matchId, allMatches, allPlayers) {
         try { events = await Api.getEvents(matchId); } catch(e) {}
         render();
       } catch(e) {
-        Utils.toast(e.message, 'error');
+        Utils.toast(e.message || 'Error al registrar evento', 'error');
       }
     };
 
-    // Eliminar evento (revierte gol si aplica)
+    // Eliminar evento (revierte puntos si aplica)
     window._lvDeleteEvent = async (evId, evType, teamId) => {
       if (!confirm('¿Eliminar este evento?')) return;
       try {
-        if (evType === 'gol') {
+        const pts = _SCORE_POINTS[evType] || 0;
+        if (pts > 0) {
           const isT1 = teamId === match.team1_id;
-          const sc1  = Math.max(0, (match.team1_score ?? 0) - (isT1 ? 1 : 0));
-          const sc2  = Math.max(0, (match.team2_score ?? 0) - (isT1 ? 0 : 1));
-          await Api.updateMatch(matchId, { team1_score: sc1, team2_score: sc2 });
-          match.team1_score = sc1;
-          match.team2_score = sc2;
+          const sc1  = Math.max(0, (match.team1_score ?? 0) - (isT1 ? pts : 0));
+          const sc2  = Math.max(0, (match.team2_score ?? 0) - (isT1 ? 0 : pts));
+          try {
+            await Api.updateMatch(matchId, { team1_score: sc1, team2_score: sc2 });
+            match.team1_score = sc1;
+            match.team2_score = sc2;
+          } catch(scoreErr) { /* score columns might not exist yet */ }
         }
         await Api.deleteEvent(evId);
         Utils.toast('Evento eliminado');
         try { events = await Api.getEvents(matchId); } catch(e) {}
         render();
       } catch(e) {
-        Utils.toast(e.message, 'error');
+        Utils.toast(e.message || 'Error al eliminar evento', 'error');
       }
     };
 

@@ -25,7 +25,11 @@ def get_event(event_id: str):
 @router.post("/", status_code=201)
 def create_event(event: EventCreate):
     data = event.model_dump(exclude_none=True)
-    res = supabase.table("match_events").insert(data).execute()
+    try:
+        supabase.table("match_events").insert(data).execute()
+        res = supabase.table("match_events").select("*").eq("match_id", data["match_id"]).order("created_at", desc=True).limit(1).execute()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error al crear evento: {str(e)}")
     if not res.data:
         raise HTTPException(status_code=400, detail="Error al crear evento")
     return res.data[0]

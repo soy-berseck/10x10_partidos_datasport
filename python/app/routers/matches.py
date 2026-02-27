@@ -118,7 +118,11 @@ def update_match(match_id: str, update: MatchUpdate):
     data = update.model_dump(exclude_none=True)
     if not data:
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
-    res = supabase.table("matches").update(data).eq("id", match_id).execute()
+    try:
+        supabase.table("matches").update(data).eq("id", match_id).execute()
+        res = supabase.table("matches").select("*").eq("id", match_id).execute()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not res.data:
         raise HTTPException(status_code=404, detail="Partido no encontrado")
     return res.data[0]

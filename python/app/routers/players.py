@@ -37,7 +37,10 @@ def get_player(player_id: str):
 @router.post("/", status_code=201)
 def create_player(player: PlayerCreate):
     data = player.model_dump(exclude_none=True)
-    res = supabase.table("players").insert(data).execute()
+    try:
+        res = supabase.table("players").insert(data).select().execute()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error al crear jugador: {str(e)}")
     if not res.data:
         raise HTTPException(status_code=400, detail="Error al crear jugador")
     return res.data[0]
@@ -48,7 +51,11 @@ def update_player(player_id: str, player: PlayerUpdate):
     data = player.model_dump(exclude_none=True)
     if not data:
         raise HTTPException(status_code=400, detail="No hay datos para actualizar")
-    res = supabase.table("players").update(data).eq("id", player_id).execute()
+    try:
+        supabase.table("players").update(data).eq("id", player_id).execute()
+        res = supabase.table("players").select("*").eq("id", player_id).execute()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error al actualizar jugador: {str(e)}")
     if not res.data:
         raise HTTPException(status_code=404, detail="Jugador no encontrado")
     return res.data[0]
