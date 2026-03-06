@@ -38,7 +38,7 @@ def get_player(player_id: str):
 def create_player(player: PlayerCreate):
     data = player.model_dump(exclude_none=True)
     try:
-        res = supabase.table("players").insert(data).select().execute()
+        res = supabase.table("players").insert(data).execute()
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error al crear jugador: {str(e)}")
     if not res.data:

@@ -80,8 +80,8 @@ const Utils = {
     const icons = {
       'Fútbol': '⚽', 'Fútbol 7': '⚽', 'Baloncesto': '🏀', 'Voleibol': '🏐',
       'Natación': '🏊', 'Tenis': '🎾', 'Pádel': '🏓',
-      'Softbol': '⚾', 'Ajedrez': '♟️', 'Gimnasia': '🤸',
-      'Golf': '⛳', 'Equitación': '🏇',
+      'Softbol': '🥎', 'Softball': '🎾', 'Ajedrez': '♟️', 'Gimnasia': '🤸',
+      'Golf': '⛳', 'Equitación': '🏇', 'Hípica': '🏇',
     };
     return icons[sport] || '🏅';
   },
@@ -101,8 +101,8 @@ const Utils = {
     const colors = {
       'Fútbol': '#16a34a', 'Fútbol 7': '#22c55e', 'Baloncesto': '#ea580c', 'Voleibol': '#7c3aed',
       'Natación': '#0284c7', 'Tenis': '#ca8a04', 'Pádel': '#0891b2',
-      'Softbol': '#dc2626', 'Ajedrez': '#374151', 'Gimnasia': '#db2777',
-      'Golf': '#65a30d', 'Equitación': '#92400e',
+      'Softbol': '#dc2626', 'Softball': '#dc2626', 'Ajedrez': '#374151', 'Gimnasia': '#db2777',
+      'Golf': '#65a30d', 'Equitación': '#92400e', 'Hípica': '#92400e',
     };
     return colors[sport] || '#3b82f6';
   },

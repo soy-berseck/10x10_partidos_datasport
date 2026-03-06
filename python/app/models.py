@@ -156,7 +156,7 @@ class PlayerBase(BaseModel):
     full_name: str
     jersey_number: Optional[int] = None
     team_id: str
-    photo_url: Optional[str] = "https://via.placeholder.com/60"
+    photo_url: Optional[str] = None
 
 class PlayerCreate(PlayerBase):
     pass
@@ -190,6 +190,8 @@ class MatchBase(BaseModel):
     match_date: Optional[str] = None
     location: Optional[str] = None
     status: str = "pending"
+    group_name: Optional[str] = None
+    phase: Optional[str] = None
 
 class MatchCreate(MatchBase):
     pass

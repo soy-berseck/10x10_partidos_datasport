@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-from app.routers import schools, sports, categories, teams, players, matches, events, statistics, standings, schedule
+from app.routers import schools, sports, categories, teams, players, matches, events, statistics, standings, schedule, posts, individual_medals, venues
 
 app = FastAPI(
     title="Data Sport API",
@@ -36,6 +36,9 @@ app.include_router(events.router)
 app.include_router(statistics.router)
 app.include_router(standings.router)
 app.include_router(schedule.router)
+app.include_router(posts.router)
+app.include_router(individual_medals.router)
+app.include_router(venues.router)
 
 @app.get("/api/health")
 def health():

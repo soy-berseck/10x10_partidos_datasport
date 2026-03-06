@@ -16,11 +16,10 @@ Pages.Players = async function(container, opts) {
       return;
     }
 
-    let filterSport = '';
-    let filterSchool = '';
-    let search = '';
+    let filterSport = '', filterSchool = '', filterGender = '', filterCategory = '', search = '';
 
-    const schools = [...new Set(teams.map(t => t.school?.name).filter(Boolean))].sort();
+    const schools      = [...new Set(teams.map(t => t.school?.name).filter(Boolean))].sort();
+    const allCategories = [...new Set(teams.map(t => t.category?.name).filter(Boolean))].sort();
 
     const getFiltered = () => {
       let f = players;
@@ -32,6 +31,14 @@ Pages.Players = async function(container, opts) {
         const tIds = teams.filter(t => t.school?.name === filterSchool).map(t => t.id);
         f = f.filter(p => tIds.includes(p.team_id));
       }
+      if (filterGender) {
+        const tIds = teams.filter(t => t.gender === filterGender || t.category?.gender === filterGender).map(t => t.id);
+        f = f.filter(p => tIds.includes(p.team_id));
+      }
+      if (filterCategory) {
+        const tIds = teams.filter(t => t.category?.name === filterCategory).map(t => t.id);
+        f = f.filter(p => tIds.includes(p.team_id));
+      }
       if (search) {
         const q = search.toLowerCase();
         f = f.filter(p => p.full_name.toLowerCase().includes(q));
@@ -41,67 +48,178 @@ Pages.Players = async function(container, opts) {
 
     const renderList = () => {
       const f = getFiltered();
+      const countEl = document.getElementById('pl-count');
+      if (countEl) countEl.textContent = `${f.length} jugador${f.length !== 1 ? 'es' : ''}`;
+
       document.getElementById('players-list').innerHTML = f.length === 0
         ? Utils.emptyState('No se encontraron jugadores')
-        : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
-          ${f.map(p => {
-            const team = teams.find(t => t.id === p.team_id);
-            const sport = team?.sport?.name || '';
-            const school = team?.school?.name || '';
-            const pStats = playerStats.find(s => s.player_id === p.id);
-            const totalScore = (pStats?.sport_stats || []).reduce((a,s) => a+(s.score||0), 0);
-            return `
-              <div class="card" style="cursor:pointer;text-align:center;" onclick="Pages._openPlayer('${p.id}')">
-                <img src="${p.photo_url||'https://via.placeholder.com/60'}"
-                     style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 8px;border:2px solid ${Utils.sportColor(sport)};">
-                <div style="font-weight:700;">${p.full_name}</div>
-                <div style="font-size:28px;font-weight:900;color:#60a5fa;">#${p.jersey_number||'?'}</div>
-                <div style="font-size:12px;color:#94a3b8;margin-top:4px;">${Utils.sportIcon(sport)} ${Utils.truncate(school,20)}</div>
-                ${pStats ? `<div style="font-size:12px;margin-top:6px;display:flex;justify-content:center;gap:10px;">
-                  <span>⚽${totalScore}</span>
-                  <span>🟨${pStats.yellow_cards}</span>
-                  <span>🟥${pStats.red_cards}</span>
-                </div>` : ''}
-              </div>`;
-          }).join('')}
-        </div>`;
+        : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;">
+            ${f.map(p => {
+              const team   = teams.find(t => t.id === p.team_id);
+              const sport  = team?.sport?.name || '';
+              const school = team?.school?.name || '';
+              const color  = Utils.sportColor(sport);
+              const pStats = playerStats.find(s => s.player_id === p.id);
+              const totalScore = (pStats?.sport_stats || []).reduce((a, s) => a + (s.score || 0), 0);
+              const photo = p.photo_url || `https://ui-avatars.com/api/?background=1e40af&color=fff&size=80&name=${encodeURIComponent(p.full_name||'?')}`;
+              const isSuspended = (pStats?.yellow_cards || 0) >= 2;
+
+              return `
+                <div onclick="Pages._openPlayer('${p.id}')"
+                  style="background:#0f172a;border:1px solid ${isSuspended ? 'rgba(239,68,68,0.4)' : '#1e293b'};border-radius:14px;
+                         overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;
+                         position:relative;"
+                  onmouseenter="this.style.transform='translateY(-3px)';this.style.borderColor='${isSuspended ? '#ef4444' : color}';this.style.boxShadow='0 8px 24px rgba(0,0,0,.4)'"
+                  onmouseleave="this.style.transform='';this.style.borderColor='${isSuspended ? 'rgba(239,68,68,0.4)' : '#1e293b'}';this.style.boxShadow=''">
+
+                  <!-- Banda de color superior -->
+                  <div style="height:4px;background:${isSuspended ? '#dc2626' : color};"></div>
+
+                  <!-- Cuerpo -->
+                  <div style="padding:16px;text-align:center;">
+                    ${isSuspended ? `
+                    <div style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);
+                                border-radius:6px;padding:3px 8px;margin-bottom:8px;display:inline-block;">
+                      <span style="font-size:10px;font-weight:800;color:#f87171;">🚫 SUSPENDIDO</span>
+                    </div>` : ''}
+                    <!-- Foto + número -->
+                    <div style="position:relative;display:inline-block;margin-bottom:10px;">
+                      <img src="${photo}" alt="${p.full_name}"
+                           style="width:70px;height:70px;border-radius:50%;object-fit:cover;
+                                  border:2px solid ${isSuspended ? '#dc2626' : color};display:block;
+                                  ${isSuspended ? 'filter:grayscale(40%)' : ''}">
+                      <span style="position:absolute;bottom:-2px;right:-6px;
+                                   background:${isSuspended ? '#dc2626' : color};color:#0f172a;
+                                   font-size:10px;font-weight:900;
+                                   padding:2px 6px;border-radius:10px;
+                                   border:2px solid #0f172a;line-height:1.2;">
+                        #${p.jersey_number || '?'}
+                      </span>
+                    </div>
+
+                    <!-- Nombre -->
+                    <div style="font-weight:700;font-size:14px;color:${isSuspended ? '#fca5a5' : '#f1f5f9'};
+                                line-height:1.3;margin-bottom:4px;">
+                      ${Utils.truncate(p.full_name, 22)}
+                    </div>
+
+                    <!-- Deporte + Colegio -->
+                    <div style="font-size:11px;color:#64748b;margin-bottom:10px;line-height:1.6;">
+                      <span style="color:${color};">${Utils.sportIcon(sport)} ${sport || '—'}</span><br>
+                      ${Utils.truncate(school, 20)}
+                    </div>
+
+                    <!-- Stats chips -->
+                    ${pStats ? `
+                    <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
+                      <span style="background:rgba(96,165,250,0.12);color:#93c5fd;
+                                   font-size:10px;font-weight:700;
+                                   padding:3px 8px;border-radius:8px;">
+                        ⚡ ${totalScore}
+                      </span>
+                      ${pStats.yellow_cards > 0 ? `
+                      <span style="background:rgba(251,191,36,0.12);color:#fbbf24;
+                                   font-size:10px;font-weight:700;
+                                   padding:3px 8px;border-radius:8px;">
+                        🟨 ${pStats.yellow_cards}
+                      </span>` : ''}
+                      ${pStats.red_cards > 0 ? `
+                      <span style="background:rgba(239,68,68,0.12);color:#f87171;
+                                   font-size:10px;font-weight:700;
+                                   padding:3px 8px;border-radius:8px;">
+                        🟥 ${pStats.red_cards}
+                      </span>` : ''}
+                    </div>` : `
+                    <div style="font-size:10px;color:#334155;">Sin estadísticas</div>`}
+                  </div>
+                </div>`;
+            }).join('')}
+          </div>`;
     };
 
+    const sportsCount = [...new Set(
+      players.map(p => teams.find(t => t.id === p.team_id)?.sport?.name).filter(Boolean)
+    )].length;
+
     container.innerHTML = `
-      <div class="mb-6 flex justify-between items-center">
+      <!-- Header -->
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;
+                  margin-bottom:22px;flex-wrap:wrap;gap:10px;">
         <div>
-          <h2 class="text-3xl font-black" style="color:#60a5fa;">⚽ Jugadores</h2>
-          <p class="text-gray-400 mt-1">${players.length} jugadores registrados</p>
+          <h2 style="font-size:28px;font-weight:900;color:#60a5fa;margin:0;">👥 Jugadores</h2>
+          <p style="color:#475569;font-size:13px;margin:4px 0 0;">
+            Registro de jugadores por deporte y colegio
+          </p>
+        </div>
+        <!-- Badges de resumen -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);
+                      border-radius:10px;padding:8px 16px;text-align:center;">
+            <div style="font-size:20px;font-weight:900;color:#60a5fa;" id="pl-count">
+              ${players.length}
+            </div>
+            <div style="font-size:11px;color:#475569;">jugadores</div>
+          </div>
+          <div style="background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);
+                      border-radius:10px;padding:8px 16px;text-align:center;">
+            <div style="font-size:20px;font-weight:900;color:#a78bfa;">${sportsCount}</div>
+            <div style="font-size:11px;color:#475569;">deportes</div>
+          </div>
         </div>
       </div>
-      <div class="card mb-6" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;">
-        <div>
-          <input type="text" class="input-field" id="pl-search" placeholder="🔍 Buscar jugador..." oninput="Pages._plFilter()">
+
+      <!-- Filtros -->
+      <div class="card mb-5" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+        <div style="flex:2;min-width:180px;position:relative;">
+          <label class="text-gray-400 text-sm">Buscar</label>
+          <input type="text" id="pl-search" class="input-field mt-1"
+            placeholder="🔍 Buscar jugador..."
+            oninput="Pages._plFilter()">
         </div>
-        <div>
-          <select class="input-field" id="pl-sport" onchange="Pages._plFilter()">
-            <option value="">Todos los deportes</option>
+        <div style="flex:1;min-width:130px;">
+          <label class="text-gray-400 text-sm">Deporte</label>
+          <select id="pl-sport" class="input-field mt-1" onchange="Pages._plFilter()">
+            <option value="">Todos</option>
             ${sports.map(s => `<option value="${s.name}">${Utils.sportIcon(s.name)} ${s.name}</option>`).join('')}
           </select>
         </div>
-        <div>
-          <select class="input-field" id="pl-school" onchange="Pages._plFilter()">
-            <option value="">Todos los colegios</option>
-            ${schools.map(s => `<option value="${s}">${Utils.truncate(s,25)}</option>`).join('')}
+        <div style="flex:1;min-width:120px;">
+          <label class="text-gray-400 text-sm">Género</label>
+          <select id="pl-gender" class="input-field mt-1" onchange="Pages._plFilter()">
+            <option value="">Todos</option>
+            <option>Masculino</option><option>Femenino</option><option>Mixto</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:130px;">
+          <label class="text-gray-400 text-sm">Categoría</label>
+          <select id="pl-category" class="input-field mt-1" onchange="Pages._plFilter()">
+            <option value="">Todas</option>
+            ${allCategories.map(c => `<option value="${c}">${c}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1;min-width:140px;">
+          <label class="text-gray-400 text-sm">Colegio</label>
+          <select id="pl-school" class="input-field mt-1" onchange="Pages._plFilter()">
+            <option value="">Todos</option>
+            ${schools.map(s => `<option value="${s}">${Utils.truncate(s, 28)}</option>`).join('')}
           </select>
         </div>
       </div>
+
       <div id="players-list"></div>
     `;
 
     Pages._plData = { players, teams, playerStats };
     Pages._plFilter = () => {
-      filterSport = document.getElementById('pl-sport')?.value || '';
-      filterSchool = document.getElementById('pl-school')?.value || '';
-      search = document.getElementById('pl-search')?.value || '';
+      filterSport    = document.getElementById('pl-sport')?.value    || '';
+      filterSchool   = document.getElementById('pl-school')?.value   || '';
+      filterGender   = document.getElementById('pl-gender')?.value   || '';
+      filterCategory = document.getElementById('pl-category')?.value || '';
+      search         = document.getElementById('pl-search')?.value   || '';
       renderList();
     };
-    Pages._openPlayer = (id) => _showPlayerDetail(document.getElementById('page-content'), id, players, teams, playerStats);
+    Pages._openPlayer = (id) =>
+      _showPlayerDetail(document.getElementById('page-content'), id, players, teams, playerStats);
 
     renderList();
   } catch(e) {
@@ -109,65 +227,166 @@ Pages.Players = async function(container, opts) {
   }
 };
 
+
 function _showPlayerDetail(container, playerId, players, teams, playerStats) {
   const player = players.find(p => p.id === playerId);
-  if (!player) { container.innerHTML = '<div class="text-red-400">Jugador no encontrado</div>'; return; }
-  const team = teams.find(t => t.id === player.team_id);
-  const sport = team?.sport?.name || '';
+  if (!player) {
+    container.innerHTML = '<div class="text-red-400 p-8">Jugador no encontrado</div>';
+    return;
+  }
+
+  const team   = teams.find(t => t.id === player.team_id);
+  const sport  = team?.sport?.name || '';
   const school = team?.school?.name || '';
+  const color  = Utils.sportColor(sport);
   const pStats = playerStats.find(s => s.player_id === playerId);
-  const totalScore = (pStats?.sport_stats || []).reduce((a,s) => a+(s.score||0), 0);
-  const totalAssists = (pStats?.sport_stats || []).reduce((a,s) => a+(s.assists||0), 0);
+
+  const totalScore   = (pStats?.sport_stats || []).reduce((a, s) => a + (s.score   || 0), 0);
+  const totalAssists = (pStats?.sport_stats || []).reduce((a, s) => a + (s.assists || 0), 0);
+  const isSuspended  = (pStats?.yellow_cards || 0) >= 2;
+
+  const photo = player.photo_url ||
+    `https://ui-avatars.com/api/?background=1e40af&color=fff&size=120&name=${encodeURIComponent(player.full_name || '?')}`;
+
+  const statCard = (icon, value, label, valueColor = '#f1f5f9') => `
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;
+                padding:16px;text-align:center;">
+      <div style="font-size:20px;margin-bottom:4px;">${icon}</div>
+      <div style="font-size:26px;font-weight:900;color:${valueColor};line-height:1;">${value}</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px;">${label}</div>
+    </div>`;
 
   container.innerHTML = `
-    <div class="mb-4"><button class="btn-ghost" onclick="App.navigate('players')">← Volver</button></div>
-    <div class="card mb-6" style="display:flex;gap:24px;align-items:center;">
-      <img src="${player.photo_url||'https://via.placeholder.com/100'}"
-           style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid ${Utils.sportColor(sport)};">
-      <div>
-        <h2 style="font-size:28px;font-weight:900;color:white;">${player.full_name}</h2>
-        <div style="font-size:42px;font-weight:900;color:#60a5fa;">#${player.jersey_number||'?'}</div>
-        <div style="color:#94a3b8;font-size:14px;">${Utils.sportIcon(sport)} ${sport} &bull; ${Utils.truncate(school,25)}</div>
-        ${team ? `<div style="color:#64748b;font-size:13px;margin-top:4px;">${Utils.truncate(team.category?.name||'',20)} &bull; ${team.gender||''}</div>` : ''}
+    <div style="margin-bottom:16px;">
+      <button onclick="App.navigate('players')"
+        style="background:rgba(255,255,255,0.05);border:1px solid #1e293b;
+               color:#94a3b8;border-radius:8px;padding:6px 14px;
+               font-size:13px;cursor:pointer;transition:background .15s;"
+        onmouseenter="this.style.background='rgba(255,255,255,0.1)'"
+        onmouseleave="this.style.background='rgba(255,255,255,0.05)'">
+        ← Volver a jugadores
+      </button>
+    </div>
+
+    <!-- Hero del jugador -->
+    <div style="background:#0f172a;border:1px solid #1e293b;border-top:4px solid ${color};
+                border-radius:16px;padding:24px;margin-bottom:20px;
+                display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+      <div style="position:relative;flex-shrink:0;">
+        <img src="${photo}" alt="${player.full_name}"
+             style="width:100px;height:100px;border-radius:50%;object-fit:cover;
+                    border:3px solid ${color};display:block;">
+        <span style="position:absolute;bottom:0;right:-4px;
+                     background:${color};color:#0f172a;
+                     font-size:12px;font-weight:900;
+                     padding:3px 8px;border-radius:12px;
+                     border:2px solid #0f172a;">
+          #${player.jersey_number || '?'}
+        </span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <h2 style="font-size:26px;font-weight:900;color:${isSuspended ? '#fca5a5' : '#f1f5f9'};margin:0 0 4px;">${player.full_name}</h2>
+        ${isSuspended ? `
+        <div style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);
+                    border-radius:8px;padding:6px 14px;margin-bottom:8px;display:inline-block;">
+          <span style="font-size:13px;font-weight:800;color:#f87171;">🚫 SUSPENDIDO — 2+ tarjetas amarillas acumuladas</span>
+        </div>` : ''}
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+          <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+                       color:${color};font-size:12px;font-weight:700;
+                       padding:3px 10px;border-radius:20px;">
+            ${Utils.sportIcon(sport)} ${sport}
+          </span>
+          <span style="font-size:13px;color:#64748b;">${Utils.truncate(school, 30)}</span>
+        </div>
+        ${team ? `
+        <div style="font-size:12px;color:#475569;">
+          ${team.category?.name || ''} · ${team.gender || ''} · ${Utils.truncate(team.name || '', 25)}
+        </div>` : ''}
       </div>
     </div>
+
+    <!-- Stats generales -->
     ${pStats ? `
-      <div class="grid gap-4 mb-6" style="grid-template-columns:repeat(4,1fr);">
-        <div class="card text-center">
-          <div class="stat-number">${totalScore}</div>
-          <div class="text-gray-400">Anotaciones</div>
-        </div>
-        <div class="card text-center">
-          <div class="stat-number" style="color:#10b981;">${totalAssists}</div>
-          <div class="text-gray-400">Asistencias</div>
-        </div>
-        <div class="card text-center">
-          <div class="stat-number" style="color:#fbbf24;">${pStats.yellow_cards}</div>
-          <div class="text-gray-400">🟨 Amarillas</div>
-        </div>
-        <div class="card text-center">
-          <div class="stat-number" style="color:#ef4444;">${pStats.red_cards}</div>
-          <div class="text-gray-400">🟥 Rojas</div>
-        </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+      ${statCard('⚡', totalScore,          'Anotaciones',   '#60a5fa')}
+      ${statCard('🎯', totalAssists,        'Asistencias',   '#10b981')}
+      ${statCard('🟨', pStats.yellow_cards, 'Amarillas',     '#fbbf24')}
+      ${statCard('🟥', pStats.red_cards,    'Rojas',         '#f87171')}
+    </div>
+
+    <!-- Stats por deporte -->
+    ${(pStats.sport_stats || []).length > 0 ? `
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;
+                padding:20px;margin-bottom:16px;">
+      <h3 style="font-size:15px;font-weight:700;color:#e2e8f0;margin:0 0 16px;
+                 display:flex;align-items:center;gap:8px;">
+        📊 <span>Estadísticas por deporte</span>
+      </h3>
+      ${pStats.sport_stats.map(ss => {
+        const sc = Utils.sportColor(ss.sport);
+        return `
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:12px 14px;border-radius:10px;margin-bottom:8px;
+                    background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">${Utils.sportIcon(ss.sport)}</span>
+            <div>
+              <div style="font-weight:700;color:#f1f5f9;font-size:14px;">${ss.sport}</div>
+              <div style="font-size:11px;color:#475569;">${ss.score_term || 'Puntos'}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+            <span style="background:rgba(96,165,250,0.12);color:#93c5fd;
+                         font-size:12px;font-weight:700;
+                         padding:4px 10px;border-radius:8px;">
+              ⚡ ${ss.score}
+            </span>
+            ${ss.assists > 0 ? `
+            <span style="background:rgba(16,185,129,0.12);color:#6ee7b7;
+                         font-size:12px;font-weight:700;
+                         padding:4px 10px;border-radius:8px;">
+              🎯 ${ss.assists}
+            </span>` : ''}
+            ${ss.three_pointers > 0 ? `
+            <span style="background:rgba(251,191,36,0.12);color:#fde68a;
+                         font-size:12px;font-weight:700;
+                         padding:4px 10px;border-radius:8px;">
+              🏀 3pt: ${ss.three_pointers}
+            </span>` : ''}
+            ${ss.blocks > 0 ? `
+            <span style="background:rgba(239,68,68,0.12);color:#fca5a5;
+                         font-size:12px;font-weight:700;
+                         padding:4px 10px;border-radius:8px;">
+              🚫 ${ss.blocks}
+            </span>` : ''}
+            ${ss.aces_count > 0 ? `
+            <span style="background:rgba(167,139,250,0.12);color:#c4b5fd;
+                         font-size:12px;font-weight:700;
+                         padding:4px 10px;border-radius:8px;">
+              🎯 Aces: ${ss.aces_count}
+            </span>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <!-- Partidos jugados -->
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;
+                padding:14px 18px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:28px;">🏟️</span>
+      <div>
+        <div style="font-size:22px;font-weight:900;color:#a78bfa;">${pStats.matches_played || 0}</div>
+        <div style="font-size:12px;color:#475569;">Partidos jugados</div>
       </div>
-      ${(pStats.sport_stats||[]).length > 0 ? `
-        <div class="card">
-          <h3 class="text-xl font-bold mb-4">📊 Stats por Deporte</h3>
-          ${pStats.sport_stats.map(ss => `
-            <div style="border-bottom:1px solid rgba(255,255,255,0.05);padding:12px 0;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <span style="font-weight:700;">${Utils.sportIcon(ss.sport)} ${ss.sport}</span>
-                <span style="color:#94a3b8;font-size:13px;margin-left:8px;">${ss.score_term||'Puntos'}</span>
-              </div>
-              <div style="display:flex;gap:16px;font-size:14px;">
-                <span>⚽ ${ss.score}</span>
-                <span>🎯 ${ss.assists}</span>
-                ${ss.three_pointers ? `<span>🏀 3pt: ${ss.three_pointers}</span>` : ''}
-                ${ss.blocks ? `<span>🚫 Bloqueos: ${ss.blocks}</span>` : ''}
-              </div>
-            </div>`).join('')}
-        </div>` : ''}
-    ` : '<p class="text-gray-400">Sin estadísticas disponibles</p>'}
+    </div>
+
+    ` : `
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;
+                padding:32px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:8px;">📋</div>
+      <p style="color:#475569;font-size:14px;margin:0;">Sin estadísticas disponibles aún.</p>
+    </div>`}
   `;
 }
 

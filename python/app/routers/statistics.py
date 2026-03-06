@@ -31,8 +31,12 @@ def get_player_statistics(sport: str = None, school_id: str = None):
         cat = next((c for c in categories if c["id"] == t.get("category_id")), {"id": "", "name": "General", "gender": "Masculino", "sport_id": ""})
         teams.append({**t, "school": school, "sport": sport_obj, "category": cat, "gender": cat.get("gender", "Masculino")})
 
-    # Enriquecer eventos con sport del partido
-    match_sport_map = {m["id"]: m.get("sport", "") for m in matches}
+    # Enriquecer eventos con sport del partido (matches tiene sport_id, no sport)
+    match_sport_map = {}
+    for m in matches:
+        sport_id = m.get("sport_id", "")
+        sport_obj = next((s for s in sports if s["id"] == sport_id), {"name": ""})
+        match_sport_map[m["id"]] = sport_obj.get("name", "")
     for e in events:
         e["sport"] = match_sport_map.get(e.get("match_id", ""), "")
 

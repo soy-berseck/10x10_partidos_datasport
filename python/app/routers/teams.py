@@ -63,6 +63,33 @@ def create_team(team: TeamCreate):
     return res.data[0]
 
 
-@router.delete("/{team_id}", status_code=204)
+@router.patch("/{team_id}/group")
+def set_team_group(team_id: str, body: dict):
+    """Asigna el grupo (A, B, etc.) a un equipo."""
+    group_name = body.get("group_name", "")
+    res = supabase.table("teams").update({"group_name": group_name}).eq("id", team_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Equipo no encontrado")
+    return {"team_id": team_id, "group_name": group_name}
+
+
+@router.delete("/{team_id}")
 def delete_team(team_id: str):
+    """Elimina un equipo y todos sus jugadores y partidos."""
+    # Delete match_events for matches involving this team
+    matches_a = supabase.table("matches").select("id").eq("team_a", team_id).execute()
+    matches_b = supabase.table("matches").select("id").eq("team_b", team_id).execute()
+    match_ids = [m["id"] for m in (matches_a.data or []) + (matches_b.data or [])]
+    for mid in match_ids:
+        supabase.table("match_events").delete().eq("match_id", mid).execute()
+
+    # Delete matches
+    supabase.table("matches").delete().eq("team_a", team_id).execute()
+    supabase.table("matches").delete().eq("team_b", team_id).execute()
+
+    # Delete players
+    supabase.table("players").delete().eq("team_id", team_id).execute()
+
+    # Delete team
     supabase.table("teams").delete().eq("id", team_id).execute()
+    return {"deleted": team_id}

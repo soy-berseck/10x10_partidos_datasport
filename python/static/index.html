@@ -3,87 +3,405 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DATA SPORT - Big Games 2026</title>
+  <title>DATA GAMES - Big Games 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --color-primary: #1e40af;
       --color-secondary: #059669;
       --color-accent: #dc2626;
-      --color-background: #0f172a;
-      --color-card: #1e293b;
+      --color-background: #07101f;
+      --color-card: #0c1728;
       --color-text: #f1f5f9;
-      --gradient-header: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+      --gradient-header: linear-gradient(135deg, #060e22 0%, #101d50 40%, #1a3799 72%, #2256d8 100%);
+      --border-subtle: 1px solid rgba(255,255,255,0.07);
+      --shadow-card: 0 4px 28px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
     }
-    body { background: var(--color-background); color: var(--color-text); font-family: 'Segoe UI', system-ui, sans-serif; }
-    .card { background: var(--color-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-    .btn-primary { background: var(--color-primary); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-    .btn-secondary { background: var(--color-secondary); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-    .btn-secondary:hover { background: #047857; }
-    .btn-danger { background: var(--color-accent); color: white; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-    .btn-danger:hover { background: #b91c1c; }
-    .btn-ghost { background: transparent; color: var(--color-text); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.2s; }
-    .btn-ghost:hover { background: rgba(255,255,255,0.1); }
-    .nav-tab { background: rgba(255,255,255,0.1); color: white; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-    .nav-tab:hover { background: rgba(255,255,255,0.2); }
-    .nav-tab.active { background: white; color: #1e40af; font-weight: 700; }
-    .badge-live { background: #dc2626; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; animation: pulse 1.5s infinite; }
-    .badge-scheduled { background: #2563eb; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .badge-finished { background: #16a34a; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
-    .input-field { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 14px; border-radius: 8px; width: 100%; box-sizing: border-box; }
-    .input-field:focus { outline: none; border-color: #3b82f6; }
+    body {
+      background: var(--color-background); color: var(--color-text);
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background-image:
+        radial-gradient(ellipse 90% 55% at 50% -2%, rgba(30,64,175,0.26) 0%, transparent 62%),
+        radial-gradient(ellipse 45% 35% at 98% 98%, rgba(5,150,105,0.1) 0%, transparent 55%),
+        radial-gradient(circle, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: auto, auto, 30px 30px;
+      min-height: 100vh;
+    }
+    .card {
+      background: var(--color-card); border-radius: 18px; padding: 20px;
+      box-shadow: var(--shadow-card); border: var(--border-subtle);
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+      color: white; padding: 10px 20px; border-radius: 10px; border: none;
+      cursor: pointer; font-weight: 600; transition: all 0.2s;
+      box-shadow: 0 2px 12px rgba(37,99,235,0.45); font-family: inherit;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+      transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.65);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      background: linear-gradient(135deg, #047857 0%, #059669 100%);
+      color: white; padding: 10px 20px; border-radius: 10px; border: none;
+      cursor: pointer; font-weight: 600; transition: all 0.2s;
+      box-shadow: 0 2px 12px rgba(5,150,105,0.45); font-family: inherit;
+    }
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+      transform: translateY(-2px); box-shadow: 0 6px 24px rgba(5,150,105,0.65);
+    }
+    .btn-secondary:active { transform: translateY(0); }
+    .btn-danger {
+      background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+      color: white; padding: 8px 16px; border-radius: 10px; border: none;
+      cursor: pointer; font-weight: 600; transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(220,38,38,0.4); font-family: inherit;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);
+      transform: translateY(-1px); box-shadow: 0 5px 16px rgba(220,38,38,0.6);
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.06); color: var(--color-text);
+      padding: 8px 16px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14); cursor: pointer;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.28);
+      transform: translateY(-1px);
+    }
+    .nav-tab {
+      background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.78);
+      padding: 7px 15px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06); cursor: pointer;
+      font-weight: 500; font-size: 13px; letter-spacing: 0.01em;
+      white-space: nowrap; transition: all 0.18s; font-family: inherit;
+    }
+    .nav-tab:hover {
+      background: rgba(255,255,255,0.14); color: white;
+      border-color: rgba(255,255,255,0.14);
+    }
+    .nav-tab.active {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      color: #1e3a8a; font-weight: 700;
+      border-color: rgba(59,130,246,0.25);
+      box-shadow: 0 2px 14px rgba(0,0,0,0.3), 0 0 0 1px rgba(59,130,246,0.12);
+    }
+    .badge-live {
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+      color: white; padding: 3px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 700; animation: pulse 1.5s infinite;
+      box-shadow: 0 0 10px rgba(239,68,68,0.5);
+    }
+    .badge-scheduled {
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+    }
+    .badge-finished {
+      background: linear-gradient(135deg, #047857, #10b981);
+      color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+    .input-field {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+      color: white; padding: 10px 14px; border-radius: 10px;
+      width: 100%; box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit;
+    }
+    .input-field:focus {
+      outline: none; border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+    }
     .input-field option { background: #1e293b; }
-    .table-row:hover { background: rgba(255,255,255,0.05); }
-    .spinner { border: 3px solid rgba(255,255,255,0.2); border-top: 3px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 40px auto; }
+    .table-row:hover { background: rgba(255,255,255,0.04); }
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #3b82f6;
+      border-radius: 50%; width: 40px; height: 40px;
+      animation: spin 0.75s linear infinite; margin: 40px auto;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-box { background: #1e293b; border-radius: 16px; padding: 28px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
-    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; font-weight: 600; z-index: 9999; animation: slideIn 0.3s ease; }
-    .toast-success { background: #059669; color: white; }
-    .toast-error { background: #dc2626; color: white; }
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .score-display { font-size: 48px; font-weight: 900; color: white; text-align: center; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .modal-box {
+      background: linear-gradient(145deg, #09142a, #152038);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 22px;
+      padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.09);
+      animation: slideUp 0.22s cubic-bezier(0.34,1.3,0.64,1);
+    }
+    @keyframes slideUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; padding: 14px 20px;
+      border-radius: 14px; font-weight: 600; z-index: 9999;
+      animation: slideIn 0.35s cubic-bezier(0.34,1.4,0.64,1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55); font-family: inherit;
+    }
+    .toast-success {
+      background: linear-gradient(135deg, #047857, #059669); color: white;
+      border: 1px solid rgba(16,185,129,0.35);
+    }
+    .toast-error {
+      background: linear-gradient(135deg, #b91c1c, #dc2626); color: white;
+      border: 1px solid rgba(239,68,68,0.35);
+    }
+    @keyframes slideIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+    .score-display { font-size: 52px; font-weight: 900; color: white; text-align: center; text-shadow: 0 2px 16px rgba(0,0,0,0.6); letter-spacing: -1px; }
     .team-name-large { font-size: 18px; font-weight: 700; text-align: center; color: #93c5fd; }
-    .stat-number { font-size: 32px; font-weight: 900; color: #60a5fa; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    .stat-number { font-size: 36px; font-weight: 900; color: #60a5fa; letter-spacing: -0.5px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.26); }
+    /* Login card — pulso de borde */
+    @keyframes loginCardPulse {
+      0%,100% { border-color: rgba(59,130,246,0.2); box-shadow: 0 0 0 1px rgba(59,130,246,0.06), 0 32px 90px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.08); }
+      50%      { border-color: rgba(96,165,250,0.5); box-shadow: 0 0 0 1px rgba(59,130,246,0.14), 0 32px 90px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 55px rgba(59,130,246,0.14); }
+    }
+    .login-card { animation: loginCardPulse 4.5s ease-in-out infinite; }
+    /* Logo ∧ — pulso de glow */
+    @keyframes logoGlow {
+      0%,100% { filter: drop-shadow(0 0 14px rgba(96,165,250,0.48)); }
+      50%      { filter: drop-shadow(0 0 38px rgba(96,165,250,1)); }
+    }
+    .logo-svg-animate { animation: logoGlow 3s ease-in-out infinite; }
+    /* Role cards en pantalla de login */
+    .role-card {
+      cursor: pointer; text-align: center; user-select: none;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 18px; padding: 24px 14px 20px;
+      transition: all 0.22s cubic-bezier(0.34,1.2,0.64,1);
+    }
+    .role-card:hover   { background: rgba(255,255,255,0.07); transform: translateY(-5px); }
+    .role-card:active  { transform: translateY(-1px) scale(0.97); }
+    .role-card--gray:hover  { border-color: rgba(148,163,184,0.45); box-shadow: 0 14px 36px rgba(0,0,0,0.4); }
+    .role-card--green:hover { border-color: rgba(16,185,129,0.55);  box-shadow: 0 14px 36px rgba(0,0,0,0.4), 0 0 0 1px rgba(16,185,129,0.12); }
+    .role-card--blue:hover  { border-color: rgba(59,130,246,0.55);  box-shadow: 0 14px 36px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.12); }
+    .role-icon {
+      width: 52px; height: 52px; border-radius: 15px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin: 0 auto 13px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
   </style>
 </head>
 <body>
 
 <!-- Login Overlay -->
-<div id="login-screen" class="min-h-screen flex items-center justify-center">
-  <div class="card text-center max-w-md w-full mx-4">
-    <div style="font-size:60px;margin-bottom:16px;">🏆</div>
-    <h1 class="text-3xl font-black mb-2" style="color:#60a5fa;">DATA SPORT</h1>
-    <p class="text-gray-400 mb-8">Big Games 2026 - Selecciona tu modo de acceso</p>
-    <div class="flex gap-4 justify-center">
-      <button onclick="App.login('viewer')" class="btn-ghost" style="font-size:16px;padding:14px 24px;">
-        📖 Modo Lector
-      </button>
-      <button onclick="App.login('editor')" class="btn-primary" style="font-size:16px;padding:14px 24px;">
-        ✏️ Modo Editor
+<div id="login-screen" class="min-h-screen flex items-center justify-center"
+     style="position:relative;overflow:hidden;">
+
+  <!-- Fondo decorativo con iconos de deporte -->
+  <div style="position:absolute;inset:0;pointer-events:none;user-select:none;">
+    <div style="position:absolute;font-size:220px;opacity:0.022;top:-40px;left:-60px;transform:rotate(-18deg);">⚽</div>
+    <div style="position:absolute;font-size:180px;opacity:0.018;top:45%;right:-50px;transform:rotate(12deg) translateY(-50%);">🏀</div>
+    <div style="position:absolute;font-size:160px;opacity:0.02;bottom:-30px;left:32%;transform:rotate(6deg);">🏐</div>
+    <div style="position:absolute;font-size:120px;opacity:0.015;bottom:10%;left:5%;transform:rotate(-8deg);">🏆</div>
+    <div style="position:absolute;font-size:100px;opacity:0.015;top:8%;right:12%;transform:rotate(20deg);">🎽</div>
+  </div>
+
+  <div class="card login-card text-center max-w-md w-full mx-4"
+       style="position:relative;padding:40px 36px 36px;">
+
+    <!-- Logo DATA GAMES -->
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:32px;">
+      <span style="font-size:14px;font-weight:800;letter-spacing:9px;text-transform:uppercase;
+                   background:linear-gradient(135deg,#bfdbfe,#93c5fd);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   background-clip:text;margin-bottom:5px;">DATA</span>
+      <svg class="logo-svg-animate" width="108" height="86" viewBox="0 0 80 64" fill="none"
+           xmlns="http://www.w3.org/2000/svg" style="margin:4px 0;">
+        <defs>
+          <linearGradient id="aGrad" x1="40" y1="4" x2="40" y2="60" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#bfdbfe"/>
+            <stop offset="55%" stop-color="#60a5fa"/>
+            <stop offset="100%" stop-color="#2563eb"/>
+          </linearGradient>
+        </defs>
+        <line x1="40" y1="4" x2="6"  y2="60" stroke="url(#aGrad)" stroke-width="7.5" stroke-linecap="round"/>
+        <line x1="40" y1="4" x2="74" y2="60" stroke="url(#aGrad)" stroke-width="7.5" stroke-linecap="round"/>
+      </svg>
+      <span style="font-size:14px;font-weight:800;letter-spacing:9px;text-transform:uppercase;
+                   background:linear-gradient(135deg,#60a5fa,#2563eb);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   background-clip:text;margin-top:5px;">GAMES</span>
+    </div>
+
+    <!-- Divisor sutil -->
+    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,0.3),transparent);
+                margin-bottom:28px;"></div>
+
+    <p style="color:#475569;font-size:12px;margin-bottom:20px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">Iniciar sesion</p>
+
+    <!-- Formulario directo -->
+    <div id="login-form">
+      <div style="text-align:left;margin-bottom:12px;">
+        <label style="color:#64748b;font-size:12px;font-weight:600;
+                      text-transform:uppercase;letter-spacing:.5px;">Usuario</label>
+        <input type="text" id="login-username" class="input-field mt-1"
+          placeholder="Nombre de usuario"
+          onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+      </div>
+      <div style="text-align:left;margin-bottom:16px;">
+        <label style="color:#64748b;font-size:12px;font-weight:600;
+                      text-transform:uppercase;letter-spacing:.5px;">Contraseña</label>
+        <input type="password" id="login-password" class="input-field mt-1"
+          placeholder="Contraseña"
+          onkeydown="if(event.key==='Enter')App.submitLoginDirect()">
+      </div>
+      <p id="login-error"
+         style="display:none;color:#fca5a5;font-size:13px;margin-bottom:12px;
+                background:rgba(220,38,38,0.12);padding:9px 14px;
+                border-radius:10px;border:1px solid rgba(220,38,38,0.25);">
+        Usuario o contraseña incorrectos
+      </p>
+      <button onclick="App.submitLoginDirect()" class="btn-primary" style="width:100%;padding:12px 26px;font-size:15px;">
+        Entrar
       </button>
     </div>
+
+    <!-- Divisor -->
+    <div style="display:flex;align-items:center;gap:12px;margin-top:20px;margin-bottom:16px;">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+      <span style="color:#475569;font-size:11px;font-weight:600;">O</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+    </div>
+
+    <!-- Entrar como lector -->
+    <button onclick="App.login('viewer')" class="btn-ghost"
+            style="width:100%;padding:11px;font-size:13px;color:rgba(255,255,255,0.6);">
+      📖 Entrar como Lector (sin cuenta)
+    </button>
+  </div>
+</div>
+
+<!-- Tournament Selection Screen -->
+<div id="tournament-screen" class="hidden min-h-screen flex items-center justify-center"
+     style="position:relative;overflow:hidden;">
+
+  <!-- Fondo decorativo -->
+  <div style="position:absolute;inset:0;pointer-events:none;user-select:none;">
+    <div style="position:absolute;font-size:220px;opacity:0.018;top:-40px;left:-60px;transform:rotate(-18deg);">⚽</div>
+    <div style="position:absolute;font-size:180px;opacity:0.014;top:45%;right:-50px;transform:rotate(12deg) translateY(-50%);">🏀</div>
+    <div style="position:absolute;font-size:160px;opacity:0.016;bottom:-30px;left:32%;transform:rotate(6deg);">🏐</div>
+  </div>
+
+  <div style="max-width:680px;width:100%;padding:0 20px;position:relative;">
+
+    <!-- Cabecera -->
+    <div style="text-align:center;margin-bottom:40px;">
+      <!-- Logo ∧ con glow -->
+      <div style="display:inline-flex;flex-direction:column;align-items:center;margin-bottom:20px;">
+        <span style="font-size:11px;font-weight:800;letter-spacing:7px;text-transform:uppercase;
+                     color:rgba(147,197,253,0.65);margin-bottom:3px;">DATA</span>
+        <svg class="logo-svg-animate" width="62" height="50" viewBox="0 0 80 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="aGradT" x1="40" y1="4" x2="40" y2="60" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#bfdbfe"/>
+              <stop offset="60%" stop-color="#60a5fa"/>
+              <stop offset="100%" stop-color="#2563eb"/>
+            </linearGradient>
+          </defs>
+          <line x1="40" y1="4" x2="6"  y2="60" stroke="url(#aGradT)" stroke-width="7.5" stroke-linecap="round"/>
+          <line x1="40" y1="4" x2="74" y2="60" stroke="url(#aGradT)" stroke-width="7.5" stroke-linecap="round"/>
+        </svg>
+        <span style="font-size:11px;font-weight:800;letter-spacing:7px;text-transform:uppercase;
+                     color:rgba(96,165,250,0.65);margin-top:3px;">GAMES</span>
+      </div>
+
+      <!-- Divisor -->
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,0.25),transparent);
+                  margin:0 auto 20px;max-width:260px;"></div>
+
+      <h2 style="color:white;font-size:24px;font-weight:800;margin:0 0 8px;letter-spacing:-0.4px;">
+        Selecciona el torneo
+      </h2>
+      <p id="tournament-role-label"
+         style="color:#475569;font-size:13px;margin:0;font-weight:500;"></p>
+    </div>
+
+    <!-- Lista de torneos (renderizada por JS) -->
+    <div id="tournament-list" style="display:flex;flex-direction:column;gap:14px;"></div>
+
+    <!-- Volver -->
+    <div style="text-align:center;margin-top:32px;">
+      <button onclick="App.backToLogin()" class="btn-ghost"
+              style="font-size:13px;padding:10px 24px;color:rgba(255,255,255,0.4);
+                     border-color:rgba(255,255,255,0.08);">
+        ← Cambiar modo de acceso
+      </button>
+    </div>
+
   </div>
 </div>
 
 <!-- Main App (hidden until login) -->
 <div id="main-app" class="hidden min-h-screen flex flex-col">
   <!-- Header -->
-  <header style="background: var(--gradient-header); padding: 20px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;">
+  <header style="background: var(--gradient-header);
+                 padding: 16px 40px 14px;
+                 box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(96,165,250,0.22);
+                 position: relative;
+                 border-bottom: 1px solid rgba(59,130,246,0.2);">
     <div style="max-width:1400px;margin:0 auto;">
-      <div style="display:flex;align-items:center;gap:15px;margin-bottom:16px;">
-        <div style="background:white;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 10px rgba(0,0,0,0.2);">🏆</div>
-        <h1 style="color:white;font-size:32px;font-weight:900;margin:0;text-shadow:2px 2px 4px rgba(0,0,0,0.3);">DATA SPORT</h1>
+      <!-- Logo + título -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+        <!-- Logo ∧ mini en header -->
+        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+                    width:44px;justify-content:center;">
+          <span style="font-size:7.5px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,0.92);
+                       text-transform:uppercase;line-height:1;">DATA</span>
+          <svg width="36" height="28" viewBox="0 0 80 64" fill="none" xmlns="http://www.w3.org/2000/svg"
+               style="filter:drop-shadow(0 0 10px rgba(147,197,253,0.65));margin:1px 0;">
+            <defs>
+              <linearGradient id="aGradH" x1="40" y1="4" x2="40" y2="60" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="100%" stop-color="#93c5fd"/>
+              </linearGradient>
+            </defs>
+            <line x1="40" y1="4" x2="6"  y2="60" stroke="url(#aGradH)" stroke-width="9" stroke-linecap="round"/>
+            <line x1="40" y1="4" x2="74" y2="60" stroke="url(#aGradH)" stroke-width="9" stroke-linecap="round"/>
+          </svg>
+          <span style="font-size:7.5px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,0.92);
+                       text-transform:uppercase;line-height:1;">GAMES</span>
+        </div>
+        <div>
+          <h1 style="color:white;font-size:26px;font-weight:900;margin:0;
+                     letter-spacing:-0.5px;text-shadow:0 2px 10px rgba(0,0,0,0.4);">DATA GAMES</h1>
+          <p id="header-tournament-name"
+             style="color:rgba(147,197,253,0.45);font-size:10px;font-weight:700;
+                    letter-spacing:2.5px;text-transform:uppercase;margin:2px 0 0;"></p>
+        </div>
       </div>
-      <nav id="main-nav" style="display:flex;gap:8px;flex-wrap:wrap;"></nav>
-      <div style="position:absolute;top:20px;right:40px;">
-        <span id="user-badge" style="background:rgba(255,255,255,0.2);color:white;padding:8px 16px;border-radius:20px;font-size:14px;"></span>
-        <button onclick="App.logout()" class="btn-ghost" style="margin-left:8px;font-size:13px;padding:6px 12px;">Salir</button>
+      <nav id="main-nav" style="display:flex;gap:6px;flex-wrap:wrap;"></nav>
+      <div style="position:absolute;top:16px;right:40px;display:flex;align-items:center;gap:8px;">
+        <button id="search-btn" onclick="App.openSearch()" class="btn-ghost"
+          style="font-size:12px;padding:6px 13px;border-color:rgba(255,255,255,0.2);"
+          title="Búsqueda global (Ctrl+K)">🔍 Buscar</button>
+        <button id="qr-btn" onclick="App.openQr()" class="btn-ghost"
+          style="display:none;font-size:12px;padding:6px 13px;border-color:rgba(255,255,255,0.2);"
+          title="Generar QR de acceso lector">📱 QR</button>
+        <span id="user-badge"
+              style="background:rgba(255,255,255,0.12);color:white;
+                     padding:7px 14px;border-radius:20px;font-size:13px;
+                     border:1px solid rgba(255,255,255,0.18);
+                     backdrop-filter:blur(4px);"></span>
+        <button onclick="App.switchTournament()" class="btn-ghost"
+                style="font-size:12px;padding:6px 12px;color:rgba(147,197,253,0.8);border-color:rgba(147,197,253,0.2);"
+                title="Cambiar torneo">🏆 Torneo</button>
+        <button onclick="App.logout()" class="btn-ghost"
+                style="font-size:12px;padding:6px 12px;color:rgba(255,255,255,0.7);">Salir</button>
       </div>
     </div>
   </header>
@@ -111,6 +429,12 @@
 <script src="/static/js/pages/players.js"></script>
 <script src="/static/js/pages/register.js"></script>
 <script src="/static/js/pages/schedule.js"></script>
+<script src="/static/js/pages/groups.js"></script>
+<script src="/static/js/pages/playoffs.js"></script>
+<script src="/static/js/pages/venues.js"></script>
+<script src="/static/js/pages/individual_sports.js"></script>
+<script src="/static/js/pages/olympic_ranking.js"></script>
+<script src="/static/js/pages/news.js"></script>
 <script src="/static/js/app.js"></script>
 </body>
 </html>

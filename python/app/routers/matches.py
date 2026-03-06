@@ -10,13 +10,16 @@ def _enrich_match(match: dict, teams: list, schools: list, sports: list, categor
     Enriquece un partido con info de colegios y nombres de deporte/categoría.
     La tabla usa: team_a, team_b, sport_id (uuid), category_id (uuid).
     """
-    def find_school(team_id: str):
+    def find_team_info(team_id: str) -> dict:
         team = next((t for t in teams if t["id"] == team_id), None)
         if not team:
-            return {"id": "", "name": "Desconocido", "logo_url": None}
+            return {"name": "Desconocido", "school": {"id": "", "name": "Desconocido", "logo_url": None}}
         school_id = team.get("school_id", "")
-        return next((s for s in schools if s["id"] == school_id),
-                    {"id": "", "name": "Desconocido", "logo_url": None})
+        school = next((s for s in schools if s["id"] == school_id),
+                      {"id": "", "name": "Desconocido", "logo_url": None})
+        # Si el equipo tiene nombre propio (ej. "British Rojo") usarlo; si no, usar el colegio
+        display_name = team.get("name") or school.get("name", "Desconocido")
+        return {"name": display_name, "school": school}
 
     team_a = match.get("team_a", "")
     team_b = match.get("team_b", "")
@@ -39,13 +42,13 @@ def _enrich_match(match: dict, teams: list, schools: list, sports: list, categor
         "gender":      cat_obj.get("gender", ""),
         "team1_score": match.get("team1_score", 0),
         "team2_score": match.get("team2_score", 0),
-        "team1": {"school": find_school(team_a)},
-        "team2": {"school": find_school(team_b)},
+        "team1": find_team_info(team_a),
+        "team2": find_team_info(team_b),
     }
 
 
 def _fetch_lookup_data():
-    teams_res  = supabase.table("teams").select("id, school_id").execute()
+    teams_res  = supabase.table("teams").select("id, school_id, name").execute()
     schools_res = supabase.table("schools").select("id, name, logo_url").execute()
     sports_res  = supabase.table("sports").select("id, name").execute()
     cats_res    = supabase.table("categories").select("id, name, gender").execute()

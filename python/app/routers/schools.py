@@ -35,6 +35,37 @@ def update_school(school_id: str, school: SchoolCreate):
     return res.data[0]
 
 
-@router.delete("/{school_id}", status_code=204)
+@router.delete("/{school_id}")
 def delete_school(school_id: str):
+    """Elimina un colegio y todos sus equipos, jugadores, partidos y medallas."""
+    # Get all teams for this school
+    teams_res = supabase.table("teams").select("id").eq("school_id", school_id).execute()
+    team_ids = [t["id"] for t in (teams_res.data or [])]
+
+    if team_ids:
+        # Delete match_events for matches involving these teams
+        for tid in team_ids:
+            matches_a = supabase.table("matches").select("id").eq("team_a", tid).execute()
+            matches_b = supabase.table("matches").select("id").eq("team_b", tid).execute()
+            match_ids = [m["id"] for m in (matches_a.data or []) + (matches_b.data or [])]
+            for mid in match_ids:
+                supabase.table("match_events").delete().eq("match_id", mid).execute()
+
+        # Delete matches involving these teams
+        for tid in team_ids:
+            supabase.table("matches").delete().eq("team_a", tid).execute()
+            supabase.table("matches").delete().eq("team_b", tid).execute()
+
+        # Delete players from these teams
+        for tid in team_ids:
+            supabase.table("players").delete().eq("team_id", tid).execute()
+
+        # Delete teams
+        supabase.table("teams").delete().eq("school_id", school_id).execute()
+
+    # Delete individual medals for this school
+    supabase.table("individual_medals").delete().eq("school_id", school_id).execute()
+
+    # Delete the school
     supabase.table("schools").delete().eq("id", school_id).execute()
+    return {"deleted": school_id}

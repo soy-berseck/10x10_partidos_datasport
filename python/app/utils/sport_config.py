@@ -14,13 +14,12 @@ SPORT_EVENT_TYPES_MAP = {
         {"type": "Penal", "label": "Penal", "icon": "⏸️", "affects_score": True, "score_points": 1, "supabase_event_type": "penalty"},
     ],
     "Baloncesto": [
-        {"type": "Canasta 1pt", "label": "Canasta 1pt", "icon": "🏀", "affects_score": True, "score_points": 1, "supabase_event_type": "basket_1pt"},
-        {"type": "Canasta 2pts", "label": "Canasta 2pts", "icon": "🏀", "affects_score": True, "score_points": 2, "supabase_event_type": "basket_2pts"},
-        {"type": "Canasta 3pts", "label": "Canasta 3pts", "icon": "🏀", "affects_score": True, "score_points": 3, "supabase_event_type": "basket_3pts"},
-        {"type": "Asistencia (Baloncesto)", "label": "Asistencia", "icon": "🎯", "affects_score": False, "score_points": 0, "supabase_event_type": "assist_basketball"},
-        {"type": "Sustitución (Baloncesto)", "label": "Sustitución", "icon": "🔄", "affects_score": False, "score_points": 0, "supabase_event_type": "substitution_basketball"},
-        {"type": "Falta Personal", "label": "Falta Personal", "icon": "❌", "affects_score": False, "score_points": 0, "supabase_event_type": "personal_foul"},
-        {"type": "Falta Técnica", "label": "Falta Técnica", "icon": "🚫", "affects_score": False, "score_points": 0, "supabase_event_type": "technical_foul"},
+        {"type": "Canasta 1pt",   "label": "+1 Tiro Libre", "icon": "🏀", "affects_score": True,  "score_points": 1, "supabase_event_type": "canasta_1pt"},
+        {"type": "Canasta 2pts",  "label": "+2 Canasta",    "icon": "🏀", "affects_score": True,  "score_points": 2, "supabase_event_type": "canasta_2pts"},
+        {"type": "Canasta 3pts",  "label": "+3 Triple",     "icon": "🏀", "affects_score": True,  "score_points": 3, "supabase_event_type": "canasta_3pts"},
+        {"type": "Rebote",        "label": "Rebote",        "icon": "🏀", "affects_score": False, "score_points": 0, "supabase_event_type": "rebote"},
+        {"type": "Bloqueo",       "label": "Bloqueo",       "icon": "🚫", "affects_score": False, "score_points": 0, "supabase_event_type": "bloqueo"},
+        {"type": "Falta Técnica", "label": "Falta Técnica", "icon": "❌", "affects_score": False, "score_points": 0, "supabase_event_type": "falta_tecnica"},
     ],
     "Voleibol": [
         {"type": "Punto (Voleibol)", "label": "Punto", "icon": "🏐", "affects_score": True, "score_points": 1, "supabase_event_type": "point_volleyball"},
@@ -45,15 +44,14 @@ SPORT_EVENT_TYPES_MAP = {
         {"type": "Game Ganado", "label": "Game Ganado", "icon": "🎮", "affects_score": False, "score_points": 0, "supabase_event_type": "game_won"},
         {"type": "Set Ganado", "label": "Set Ganado", "icon": "🏆", "affects_score": False, "score_points": 0, "supabase_event_type": "set_won"},
     ],
-    "Softbol": [
-        {"type": "Gol", "label": "Carrera", "icon": "⚾", "affects_score": True, "score_points": 1, "supabase_event_type": "goal"},
-        {"type": "Asistencia (Fútbol)", "label": "Asistencia (Softbol)", "icon": "🎯", "affects_score": False, "score_points": 0, "supabase_event_type": "assist_football"},
-        {"type": "Sustitución (Fútbol)", "label": "Sustitución (Softbol)", "icon": "🔄", "affects_score": False, "score_points": 0, "supabase_event_type": "substitution_football"},
+    "Softball": [
+        {"type": "Homerun", "label": "Homerun", "icon": "🥎", "affects_score": True, "score_points": 1, "supabase_event_type": "homerun"},
     ],
     "Ajedrez": [],
     "Gimnasia": [],
     "Golf": [],
     "Equitación": [],
+    "Hípica": [],
 }
 
 SPORT_SCORE_TERM_MAP = {
@@ -63,36 +61,39 @@ SPORT_SCORE_TERM_MAP = {
     "Natación": "Tiempos",
     "Tenis": "Puntos",
     "Pádel": "Puntos",
-    "Softbol": "Carreras",
+    "Softball": "Puntos",
     "Ajedrez": "Victorias",
     "Gimnasia": "Puntos",
     "Golf": "Golpes",
     "Equitación": "Puntos",
+    "Hípica": "Puntos",
 }
 
 # Supabase event types que suman puntos al marcador del equipo
 PRIMARY_SCORING_SUPABASE_EVENTS = {
     "Fútbol": ["goal", "penalty"],
-    "Baloncesto": ["basket_1pt", "basket_2pts", "basket_3pts"],
+    "Baloncesto": ["canasta_1pt", "canasta_2pts", "canasta_3pts"],
     "Voleibol": ["point_volleyball", "ace"],
     "Natación": [],
     "Tenis": ["point_tennis_padel"],
     "Pádel": ["point_tennis_padel"],
-    "Softbol": ["goal"],
+    "Softball": ["homerun"],
     "Ajedrez": [],
     "Gimnasia": [],
     "Golf": [],
     "Equitación": [],
+    "Hípica": [],
 }
 
 # Puntos por tipo de evento en Supabase
 SUPABASE_EVENT_POINTS = {
     "goal": 1,
     "penalty": 1,
-    "basket_1pt": 1,
-    "basket_2pts": 2,
-    "basket_3pts": 3,
+    "canasta_1pt": 1,
+    "canasta_2pts": 2,
+    "canasta_3pts": 3,
     "point_volleyball": 1,
     "ace": 1,
     "point_tennis_padel": 1,
+    "homerun": 1,
 }

@@ -27,6 +27,7 @@ const Api = {
   // ─── Schools ────────────────────────────────────────────────────────────────
   getSchools: () => Api.get('/api/schools/'),
   createSchool: (data) => Api.post('/api/schools/', data),
+  deleteSchool: (id) => Api.delete(`/api/schools/${id}`),
 
   // ─── Sports ─────────────────────────────────────────────────────────────────
   getSports: () => Api.get('/api/sports/'),
@@ -38,6 +39,8 @@ const Api = {
   getTeams: () => Api.get('/api/teams/'),
   getTeam: (id) => Api.get(`/api/teams/${id}`),
   createTeam: (data) => Api.post('/api/teams/', data),
+  deleteTeam: (id) => Api.delete(`/api/teams/${id}`),
+  setTeamGroup: (id, groupName) => Api._request('PATCH', `/api/teams/${id}/group`, { group_name: groupName }),
 
   // ─── Players ────────────────────────────────────────────────────────────────
   getPlayers: (team_id = null) => Api.get('/api/players/' + (team_id ? `?team_id=${team_id}` : '')),
@@ -82,6 +85,35 @@ const Api = {
   clearAllMatches: () => Api.delete('/api/schedule/clear-all'),
   getScheduleConfig: () => Api.get('/api/schedule/config'),
   getSchedulePreview: () => Api.get('/api/schedule/preview'),
+
+  // ─── Posts ──────────────────────────────────────────────────────────────────
+  getPosts: () => Api.get('/api/posts/'),
+  createPost: (data) => Api.post('/api/posts/', data),
+  deletePost: (id) => Api.delete(`/api/posts/${id}`),
+  toggleReaction: (postId, data) => Api.post(`/api/posts/${postId}/reactions`, data),
+  addComment: (postId, data) => Api.post(`/api/posts/${postId}/comments`, data),
+  deleteComment: (postId, commentId) => Api.delete(`/api/posts/${postId}/comments/${commentId}`),
+  async uploadPostMedia(file) {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch('/api/posts/upload', { method: 'POST', body: form });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al subir archivo' }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    return res.json();
+  },
+
+  // ─── Individual Medals ──────────────────────────────────────────────────────
+  getIndividualMedals: () => Api.get('/api/individual-medals/'),
+  addIndividualMedal: (data) => Api.post('/api/individual-medals/', data),
+  deleteIndividualMedal: (id) => Api.delete(`/api/individual-medals/${id}`),
+  getIndividualMedalsSummary: () => Api.get('/api/individual-medals/summary'),
+
+  // ─── Venues ───────────────────────────────────────────────────────────────
+  getVenues: () => Api.get('/api/venues/'),
+  createVenue: (data) => Api.post('/api/venues/', data),
+  deleteVenue: (id) => Api.delete(`/api/venues/${id}`),
 
   // ─── Upload Excel ────────────────────────────────────────────────────────────
   async importPlayersExcel(file) {

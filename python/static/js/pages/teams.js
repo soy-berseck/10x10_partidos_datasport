@@ -22,12 +22,15 @@ Pages.Teams = async function(container, opts) {
 
     let filterSport = '';
     let filterGender = '';
+    let filterCategory = '';
     let searchText = '';
+    const allCategories = [...new Set(teams.map(t => t.category?.name).filter(Boolean))].sort();
 
     const getFiltered = () => {
       let f = teams;
-      if (filterSport) f = f.filter(t => t.sport?.name === filterSport);
-      if (filterGender) f = f.filter(t => t.gender === filterGender || t.category?.gender === filterGender);
+      if (filterSport)    f = f.filter(t => t.sport?.name === filterSport);
+      if (filterGender)   f = f.filter(t => t.gender === filterGender || t.category?.gender === filterGender);
+      if (filterCategory) f = f.filter(t => t.category?.name === filterCategory);
       if (searchText) {
         const q = searchText.toLowerCase();
         f = f.filter(t =>
@@ -63,26 +66,33 @@ Pages.Teams = async function(container, opts) {
       </div>
 
       <!-- Filtros -->
-      <div class="card mb-6" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;">
-        <div>
+      <div class="card mb-6" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+        <div style="flex:2;min-width:180px;">
           <label class="text-gray-400 text-sm block mb-1">Buscar colegio o deporte</label>
           <input type="text" id="t-search" class="input-field" placeholder="🔍 Buscar..."
                  oninput="window._teamsFilter()">
         </div>
-        <div>
+        <div style="flex:1;min-width:130px;">
           <label class="text-gray-400 text-sm block mb-1">Deporte</label>
           <select id="t-sport" class="input-field" onchange="window._teamsFilter()">
-            <option value="">Todos los deportes</option>
+            <option value="">Todos</option>
             ${sports.map(s => `<option value="${s.name}">${Utils.sportIcon(s.name)} ${s.name}</option>`).join('')}
           </select>
         </div>
-        <div>
+        <div style="flex:1;min-width:120px;">
           <label class="text-gray-400 text-sm block mb-1">Género</label>
           <select id="t-gender" class="input-field" onchange="window._teamsFilter()">
             <option value="">Todos</option>
             <option>Masculino</option>
             <option>Femenino</option>
             <option>Mixto</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:130px;">
+          <label class="text-gray-400 text-sm block mb-1">Categoría</label>
+          <select id="t-category" class="input-field" onchange="window._teamsFilter()">
+            <option value="">Todas</option>
+            ${allCategories.map(c => `<option value="${c}">${c}</option>`).join('')}
           </select>
         </div>
         <button class="btn-ghost" onclick="window._teamsReset()">🔄</button>
@@ -93,23 +103,31 @@ Pages.Teams = async function(container, opts) {
 
     // Funciones globales para los filtros y onclick
     window._teamsFilter = () => {
-      filterSport  = document.getElementById('t-sport')?.value || '';
-      filterGender = document.getElementById('t-gender')?.value || '';
-      searchText   = document.getElementById('t-search')?.value || '';
+      filterSport    = document.getElementById('t-sport')?.value || '';
+      filterGender   = document.getElementById('t-gender')?.value || '';
+      filterCategory = document.getElementById('t-category')?.value || '';
+      searchText     = document.getElementById('t-search')?.value || '';
       renderList();
     };
 
     window._teamsReset = () => {
-      document.getElementById('t-sport').value = '';
-      document.getElementById('t-gender').value = '';
-      document.getElementById('t-search').value = '';
-      filterSport = filterGender = searchText = '';
+      ['t-sport','t-gender','t-category','t-search'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+      filterSport = filterGender = filterCategory = searchText = '';
       renderList();
     };
 
     window._openTeam = (teamId) => {
       const { teams: ts, players: ps } = window._teamsData;
       _renderTeamDetail(document.getElementById('page-content'), teamId, ts, ps);
+    };
+
+    window._deleteTeam = async (id, name) => {
+      if (!confirm('Eliminar equipo "' + name + '"? Se eliminaran sus jugadores y partidos.')) return;
+      try {
+        await Api.deleteTeam(id);
+        Utils.toast('Equipo eliminado', 'success');
+        App.navigate('teams');
+      } catch(e) { Utils.toast('Error: ' + e.message, 'error'); }
     };
 
     renderList();
@@ -246,12 +264,12 @@ function _renderTeamDetail(container, teamId, teams, players) {
             ${schoolName}
           </h2>
           <div style="color:#94a3b8;font-size:14px;">${catName} &bull; ${gender}</div>
-          <div style="margin-top:12px;display:flex;gap:20px;">
+          <div style="margin-top:12px;display:flex;gap:20px;align-items:center;">
             <div style="text-align:center;">
               <div style="font-size:28px;font-weight:900;color:${color};">${teamPlayers.length}</div>
               <div style="font-size:12px;color:#64748b;">Jugadores</div>
             </div>
-          </div>
+            ${App.isEditor() ? `<button class="btn-danger" style="margin-left:auto;" onclick="window._deleteTeam('${team.id}','${schoolName.replace(/'/g,"\\'")}')">Eliminar Equipo</button>` : ''}
         </div>
       </div>
     </div>
