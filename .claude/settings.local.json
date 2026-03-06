@@ -5,7 +5,14 @@
       "Bash(taskkill /F /IM python.exe)",
       "Bash(python -c \"import time; time.sleep\\(3\\); print\\(''waited''\\)\")",
       "Bash(curl -s --max-time 10 \"http://localhost:8000/api/matches/\")",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(git add python/app/routers/events.py python/app/routers/matches.py python/app/routers/players.py python/app/routers/__pycache__/ python/static/js/pages/live_scoring.js)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(python seed_matches.py --dry-run)",
+      "Bash(curl -s http://localhost:8000/api/schedule/preview)",
+      "Bash(python -m json.tool)"
     ]
   }
 }
